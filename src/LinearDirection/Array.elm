@@ -3,7 +3,6 @@ module LinearDirection.Array exposing
     , take, drop, group
     , at
     , replaceAt, removeAt, insertAt
-    , order
     )
 
 {-| `Array` operations that can be applied in either direction.
