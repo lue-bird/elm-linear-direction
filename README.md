@@ -19,9 +19,9 @@ Array.fromList [ "m", "l", "e" ]
 
 This has some neat advantages.
 
-- this also results in less clutter (e.g. one `fold` instead of `foldr` `foldl`) or [`chanksFromLeft`/`Right`](https://package.elm-lang.org/packages/elm-community/list-split/latest/List-Split)
+- less clutter (e.g. one `fold` instead of `foldr` `foldl` or [`chunksFromLeft`/`Right`](https://package.elm-lang.org/packages/elm-community/list-split/latest/List-Split))
 
-- You can deal with both directions at once
+- deal with both directions at once
     ```elm
     import LinearDirection exposing (LinearDirection(..))
     import LinearDirection.Array as Array
