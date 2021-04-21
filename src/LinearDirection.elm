@@ -16,7 +16,6 @@ module LinearDirection exposing
 
 
 {-| Either `FirstToLast` or `LastToFirst`.
-You might also want to create aliases (e.g. forward and backward)
 -}
 type LinearDirection
     = FirstToLast
@@ -37,16 +36,16 @@ opposite direction =
 
 {-| Translate an amount or index to one that is used `FirstToLast`.
 
-    at index direction =
+    at index direction array =
         Array.get
-            (LinearDirection.toFirstToLast index
-                direction
-                { length = Array.length array }
+            (index
+                |> toFirstToLast direction
+                    { length = Array.length array }
             )
 
 -}
-toFirstToLast : Int -> LinearDirection -> { length : Int } -> Int
-toFirstToLast n direction { length } =
+toFirstToLast : LinearDirection -> { length : Int } -> Int -> Int
+toFirstToLast direction { length } n =
     case direction of
         FirstToLast ->
             n
