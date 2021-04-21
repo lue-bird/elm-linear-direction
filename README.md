@@ -3,33 +3,42 @@
 
 I think direction can be better expressed than in
 - `foldr` and `foldl`: does `foldr` mean fold right? A quite unclear name
-- `Array.slice`'s negative indices: `slice 0 -1` is handy! But you can't do `slice 2 -0`
-- no `getr/l`, `setr/l`, ... but `foldr` and `foldl`?
+- no `getr/l`, `setr/l`, but `foldr` and `foldl`?
+- negative indices
+  - `Array.slice 0 -1` is handy! But you can't do `slice 2 -0`
+  - Many operations support negative indices, but others don't
+  - not explicit → can have unintended side-effects
 
 This package's simple goal is allowing you to use the direction as an argument.
 
 ```elm
 import LinearDirection exposing (LinearDirection(..))
-import Array.LinearDirection as Array
+import List.LinearDirection as List
+import LinearDirection.Array as Array
 
-Array.fromList [ "m", "l", "e" ]
-    |> Array.fold LastToFirst (++) ""
+[ "m", "l", "e" ]
+    |> List.fold LastToFirst (++) ""
 --> "elm"
+
+last : Array a -> Maybe a
+last =
+    Array.at 0 LastToFirst
 ```
 
-This has some neat advantages.
+  - → a less cluttered API (e.g. one `fold` instead of `foldr` `foldl` or `group` instead of [`chunksFromLeft`/`Right`](https://package.elm-lang.org/packages/elm-community/list-split/latest/List-Split))
 
-  - less cluttered API (e.g. one `fold` instead of `foldr` `foldl` or `group` instead of [`chunksFromLeft`/`Right`](https://package.elm-lang.org/packages/elm-community/list-split/latest/List-Split))
-
-  - deal with both directions at once
+  - → deal with both directions at once
 
     ```elm
-    import LinearDirection exposing (LinearDirection(..))
+    import LinearDirection exposing (LinearDirection)
     import LinearDirection.Array as Array
 
-    updateAt : Int -> LinearDirection -> (a -> a) -> Array a -> Array a
+    updateAt :
+        Int -> LinearDirection -> (a -> a) -> Array a -> Array a
     updateAt index direction alter =
         Array.replaceAt index direction
             (alter (Array.at index direction))
 
     ```
+
+  - → direction is always explicit
