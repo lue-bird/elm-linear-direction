@@ -1,21 +1,12 @@
 module Array.LinearDirection exposing
-    ( fold
-    , take, drop, group
-    , at
+    ( at
     , replaceAt, removeAt, insertAt
+    , fold
+    , take, drop, group
+    , concat
     )
 
 {-| `Array` operations that can be applied in either direction.
-
-
-## transform
-
-@docs fold
-
-
-## part
-
-@docs take, drop, group
 
 
 ## scan
@@ -27,20 +18,36 @@ module Array.LinearDirection exposing
 
 @docs replaceAt, removeAt, insertAt
 
+
+## transform
+
+@docs fold, order
+
+
+## part
+
+@docs take, drop, group
+
+
+## unite
+
+@docs concat
+
 -}
 
 import Array exposing (Array)
 import LinearDirection exposing (LinearDirection(..), toFirstToLast)
+import List.LinearDirection as List
 
 
 {-| Reduce an `Array` in a direction.
 
-    Array.fromList [ "l", "i", "v", "e" ]
-        |> Array.fold FirstToLast (++) ""
+    Array.fold FirstToLast (++) ""
+        (Array.fromList [ "l", "i", "v", "e" ])
     --> "live"
 
-    Array.fromList [ "l", "i", "v", "e" ]
-        |> Array.fold LastToFirst (++) ""
+    Array.fold LastToFirst (++) ""
+        (Array.fromList [ "l", "i", "v", "e" ])
     --> "evil"
 
 -}
@@ -50,13 +57,13 @@ fold :
     -> result
     -> Array element
     -> result
-fold direction reduce initial =
+fold direction reduce initial array =
     case direction of
         FirstToLast ->
-            Array.foldl reduce initial
+            Array.foldl reduce initial array
 
         LastToFirst ->
-            Array.foldr reduce initial
+            Array.foldr reduce initial array
 
 
 {-| Put an element in an `Array` at a given index in a direction.
@@ -71,10 +78,11 @@ fold direction reduce initial =
 If the index is out of bounds, nothing gets inserted.
 
     Array.fromList [ 'a', 'c', 'd' ]
-        |> Array.insertAt -1 'b'
+        |> Array.insertAt -1 FirstToLast 'b'
     --> Array.fromList [ 'a', 'c', 'd' ]
+
     Array.fromList [ 'a', 'c', 'd' ]
-        |> Array.insertAt 10 'b'
+        |> Array.insertAt 10 FirstToLast 'b'
     --> Array.fromList [ 'a', 'c', 'd' ]
 
 -}
@@ -82,21 +90,14 @@ insertAt : Int -> LinearDirection -> a -> Array a -> Array a
 insertAt index direction element array =
     if index >= 0 && index <= Array.length array then
         let
-            indexAfterElement =
-                case direction of
-                    FirstToLast ->
-                        index
-
-                    LastToFirst ->
-                        Array.length array - index
-
-            before =
-                Array.slice 0 indexAfterElement array
-
-            after =
-                Array.slice indexAfterElement (Array.length array) array
+            elementCountBeforeInserted =
+                index
         in
-        Array.append (Array.push element before) after
+        concat direction
+            [ array |> take elementCountBeforeInserted direction
+            , Array.fromList [ element ]
+            , array |> drop elementCountBeforeInserted direction
+            ]
 
     else
         array
@@ -111,57 +112,82 @@ insertAt index direction element array =
         |> Array.removeAt 0 LastToFirst
     --> Array.fromList [ 'a', 'b', 'c' ]
 
-If the index is out of bounds, the `Array` is unaltered.
+If the index is out of bounds, nothing is changed.
 
-    Array.fromList [ 'a', 'a', 'b' ]
-        |> Array.removeAt -1 FirstToLast
+    Array.removeAt -1 FirstToLast
+        (Array.fromList [ 'a', 'a', 'b' ])
+    --> Array.fromList [ 'a', 'a', 'b' ]
+
+    Array.removeAt 100 FirstToLast
+        (Array.fromList [ 'a', 'a', 'b' ])
     --> Array.fromList [ 'a', 'a', 'b' ]
 
 -}
 removeAt : Int -> LinearDirection -> Array a -> Array a
 removeAt index direction array =
-    if index >= 0 && index <= Array.length array then
-        let
-            firstToLastIndex =
-                toFirstToLast index
-                    direction
-                    { length = Array.length array }
-
-            before =
-                Array.slice 0 firstToLastIndex array
-
-            after =
-                Array.slice (firstToLastIndex + 1) (Array.length array) array
-        in
-        Array.append before after
+    if index >= 0 then
+        concat direction
+            [ take index direction array
+            , drop (index + 1) direction array
+            ]
 
     else
         array
 
 
+{-| Append multiple `Array`s in a direction.
+
+    Array.concat FirstToLast
+        [ Array.fromList [ 2, 4, 6 ]
+        , Array.fromList [ 8 ]
+        , Array.fromList [ 10, 12, 14 ]
+        ]
+    --> Array.fromList
+    -->     [ 2, 4, 6, 8, 10, 12, 14 ]
+
+    Array.concat LastToFirst
+        [ Array.fromList [ 2, 4, 6 ]
+        , Array.fromList [ 8 ]
+        , Array.fromList [ 10, 12, 14 ]
+        ]
+    --> Array.fromList
+    -->     [ 14, 12, 10, 8, 6, 4, 2 ]
+
+-}
+concat : LinearDirection -> List (Array a) -> Array a
+concat direction arrays =
+    List.fold direction
+        (\current soFar -> Array.append soFar current)
+        Array.empty
+        arrays
+
+
 {-| `Just` the element at an index in a direction.
 
-    Array.fromList [ "lose", "win", "lose" ]
-        |> Array.at 0 LastToFirst
+    Array.at 0 LastToFirst
+        (Array.fromList [ "lose", "win", "lose" ])
     --> Just "lose"
 
-    Array.fromList [ 1, 2, 3 ]
-        |> Array.at 0 FirstToLast
+
+    Array.at 0 FirstToLast
+        (Array.fromList [ "lose", "win", "lose" ])
     --> Just "lose"
 
 `Nothing`, if the index is out of range.
 
-    Array.fromList [ 1, 2, 3 ]
-        |> Array.at -1
+    Array.at -1 FirstToLast (Array.fromList [ 1, 2, 3 ])
+    --> Nothing
+
+    Array.at 100 FirstToLast (Array.fromList [ 1, 2, 3 ])
     --> Nothing
 
 -}
 at : Int -> LinearDirection -> Array a -> Maybe a
 at index direction array =
     Array.get
-        (toFirstToLast index
-            direction
-            { length = Array.length array }
+        (index
+            |> toFirstToLast direction
+                { length = Array.length array }
         )
         array
 
@@ -191,9 +217,9 @@ replaceAt :
     -> Array element
 replaceAt index direction new array =
     Array.set
-        (toFirstToLast index
-            direction
-            { length = Array.length array }
+        (index
+            |> toFirstToLast direction
+                { length = Array.length array }
         )
         new
         array
@@ -239,8 +265,10 @@ take amount direction array =
         |> Array.drop 100 FirstToLast
     --> Array.empty
 
-    Array.fromList [ 1, 2, 3 ]
-        |> Array.drop -100 FirstToLast
+Nothing is dropped if the index is negative.
+
+    Array.drop -1 FirstToLast
+        (Array.fromList [ 1, 2, 3 ])
     --> Array.fromList [ 1, 2, 3 ]
 
 -}

@@ -1,11 +1,14 @@
-module List.LinearDirection exposing (fold)
+module List.LinearDirection exposing
+    ( fold
+    , group
+    )
 
 {-|
 
 
 ## transform
 
-@docs fold
+@docs fold, order
 
 
 ## part
@@ -34,13 +37,13 @@ fold :
     -> result
     -> List element
     -> result
-fold direction reduce initial =
+fold direction reduce initial list =
     case direction of
         FirstToLast ->
-            List.foldl reduce initial
+            List.foldl reduce initial list
 
         LastToFirst ->
-            List.foldr reduce initial
+            List.foldr reduce initial list
 
 
 {-| Split the `Array` into equal-sized chunks. The elements left over on one side are in `less`.
@@ -61,23 +64,50 @@ fold direction reduce initial =
 group :
     Int
     -> LinearDirection
-    -> Array a
-    -> { groups : Array (Array a), less : Array a }
-group groupSize direction array =
-    if Array.length array >= groupSize then
-        let
-            after =
-                group groupSize
-                    direction
-                    (drop groupSize direction array)
-        in
-        { groups =
-            .groups after
-                |> insertAt 0
-                    direction
-                    (take groupSize direction array)
-        , less = .less after
-        }
+    -> List a
+    -> { groups : List (List a), less : List a }
+group groupSize direction listToGroup =
+    let
+        groupFirstToLast list =
+            if List.length list >= groupSize then
+                let
+                    after =
+                        groupFirstToLast (List.drop groupSize list)
+                in
+                { groups =
+                    List.take groupSize list
+                        :: .groups after
+                , less = .less after
+                }
 
-    else
-        { groups = Array.empty, less = array }
+            else
+                { groups = [], less = list }
+
+        { groups, less } =
+            groupFirstToLast (order direction listToGroup)
+    in
+    { groups =
+        groups
+            |> order direction
+            |> List.map (order direction)
+    , less = less |> order direction
+    }
+
+
+{-| Keep the order if `FirstToLast`, reverse if `LastToFirst`.
+
+    [ 1, 2, 3 ] |> List.order LastToFirst
+    --> [ 3, 2, 1 ]
+
+    [ 1, 2, 3 ] |> List.order FirstToLast
+    --> [ 1, 2, 3 ]
+
+-}
+order : LinearDirection -> List a -> List a
+order direction list =
+    case direction of
+        FirstToLast ->
+            list
+
+        LastToFirst ->
+            list |> List.reverse
