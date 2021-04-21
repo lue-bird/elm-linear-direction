@@ -6,7 +6,8 @@
     "version": "1.0.0",
     "exposed-modules": [
         "LinearDirection",
-        "Array.LinearDirection"
+        "Array.LinearDirection",
+        "List.LinearDirection"
     ],
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {
