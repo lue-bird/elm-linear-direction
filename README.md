@@ -10,7 +10,7 @@ This package's simple goal is allowing you to use the direction as an argument.
 
 ```elm
 import LinearDirection exposing (LinearDirection(..))
-import LinearDirection.Array as Array
+import Array.LinearDirection as Array
 
 Array.fromList [ "m", "l", "e" ]
     |> Array.fold LastToFirst (++) ""
@@ -19,9 +19,10 @@ Array.fromList [ "m", "l", "e" ]
 
 This has some neat advantages.
 
-- less clutter (e.g. one `fold` instead of `foldr` `foldl` or [`chunksFromLeft`/`Right`](https://package.elm-lang.org/packages/elm-community/list-split/latest/List-Split))
+  - less cluttered API (e.g. one `fold` instead of `foldr` `foldl` or `group` instead of [`chunksFromLeft`/`Right`](https://package.elm-lang.org/packages/elm-community/list-split/latest/List-Split))
 
-- deal with both directions at once
+  - deal with both directions at once
+
     ```elm
     import LinearDirection exposing (LinearDirection(..))
     import LinearDirection.Array as Array

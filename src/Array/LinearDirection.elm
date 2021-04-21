@@ -1,4 +1,4 @@
-module LinearDirection.Array exposing
+module Array.LinearDirection exposing
     ( fold
     , take, drop, group
     , at

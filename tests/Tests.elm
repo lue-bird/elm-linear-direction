@@ -1,9 +1,9 @@
 module Tests exposing (suite)
 
 import Array
+import Array.LinearDirection as Array
 import Expect
 import LinearDirection exposing (LinearDirection(..))
-import LinearDirection.Array as Array
 import Test exposing (Test, describe, test)
 
 
