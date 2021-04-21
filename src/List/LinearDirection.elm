@@ -1,5 +1,5 @@
 module List.LinearDirection exposing
-    ( fold
+    ( fold, order
     , group
     )
 

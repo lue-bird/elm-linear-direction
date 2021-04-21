@@ -1,7 +1,7 @@
 module Array.LinearDirection exposing
     ( at
     , replaceAt, removeAt, insertAt
-    , fold
+    , fold, order
     , take, drop, group
     , concat
     )
