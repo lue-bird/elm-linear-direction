@@ -7,7 +7,7 @@
 
 ## What you can do
 
-- add new modules like `LinearDirection.List` or add to existing ones
+- add new modules like `LinearDirection.Dict` or add to existing ones
 - share your thoughts
 
 ### Summary Guide
