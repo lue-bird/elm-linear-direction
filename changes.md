@@ -8,3 +8,7 @@
 - added `Array.LinearDirectio.concat`
 - changed argument order for `LinearDirection.toFirstToLast`
 - changed readme: examples & the why
+
+### 2.1.0
+
+- added `resize`
