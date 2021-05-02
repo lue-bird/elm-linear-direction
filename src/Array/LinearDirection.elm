@@ -1,7 +1,7 @@
 module Array.LinearDirection exposing
     ( at
     , replaceAt, removeAt, insertAt
-    , fold, order
+    , fold, order, resize
     , take, drop, group
     , concat
     )
@@ -21,7 +21,7 @@ module Array.LinearDirection exposing
 
 ## transform
 
-@docs fold, order
+@docs fold, order, resize
 
 
 ## part
@@ -277,6 +277,55 @@ drop amount direction array =
     take (Array.length array - amount)
         (LinearDirection.opposite direction)
         array
+
+
+{-| Resize an array in a direction, padding with a given value.
+
+    Array.resize LastToFirst 4 0
+        (Array.fromList [ 1, 2 ])
+    --> Array.fromList [ 0, 0, 1, 2 ]
+
+    Array.resize LastToFirst 2 0
+        (Array.fromList [ 1, 2, 3 ])
+    --> Array.fromList [ 2, 3 ]
+
+    Array.resize FirstToLast 4 0
+        (Array.fromList [ 1, 2 ])
+    --> Array.fromList [ 1, 2, 0, 0 ]
+
+    Array.resize FirstToLast 2 0
+        (Array.fromList [ 1, 2, 3 ])
+    --> Array.fromList [ 1, 2 ]
+
+The result is an emmpty array if the index is negative.
+
+    Array.resize LastToFirst -1 0
+        (Array.fromList [ 1, 2 ])
+    --> Array.empty
+
+-}
+resize : LinearDirection -> Int -> a -> Array a -> Array a
+resize direction newLength defaultValue array =
+    if newLength <= 0 then
+        Array.empty
+
+    else
+        let
+            len =
+                Array.length array
+        in
+        case compare len newLength of
+            GT ->
+                take newLength direction array
+
+            LT ->
+                concat direction
+                    [ array
+                    , Array.repeat (newLength - len) defaultValue
+                    ]
+
+            EQ ->
+                array
 
 
 {-| Keep the order if `FirstToLast`, reverse if `LastToFirst`.

@@ -1,6 +1,6 @@
 module Tests exposing (suite)
 
-import Array
+import Array exposing (Array)
 import Array.LinearDirection as Array
 import Expect
 import LinearDirection exposing (LinearDirection(..))
@@ -223,4 +223,53 @@ arrayTests =
                             }
                 )
             ]
+        , describe "resize"
+            [ describe "FirstToLast"
+                [ test "length less than current"
+                    (\() ->
+                        Array.resize FirstToLast 3 0 num1234
+                            |> Expect.equal
+                                (Array.fromList [ 1, 2, 3 ])
+                    )
+                , test "length greater than current"
+                    (\() ->
+                        Array.resize FirstToLast 6 0 num1234
+                            |> Expect.equal
+                                (Array.fromList [ 1, 2, 3, 4, 0, 0 ])
+                    )
+                , test "negative length"
+                    (\() ->
+                        Array.resize FirstToLast -1 0 num1234
+                            |> Expect.equal Array.empty
+                    )
+                ]
+            , describe "LastToFirst"
+                [ test "length less than current"
+                    (\() ->
+                        Array.resize LastToFirst 3 0 num1234
+                            |> Expect.equal
+                                (Array.fromList [ 2, 3, 4 ])
+                    )
+                , test "length greater than current"
+                    (\() ->
+                        Array.resize LastToFirst 6 0 num1234
+                            |> Expect.equal
+                                (Array.fromList [ 0, 0, 1, 2, 3, 4 ])
+                    )
+                , test "negative length"
+                    (\() ->
+                        Array.resize FirstToLast -1 0 num1234
+                            |> Expect.equal Array.empty
+                    )
+                ]
+            ]
         ]
+
+
+
+-- used
+
+
+num1234 : Array number
+num1234 =
+    Array.fromList [ 1, 2, 3, 4 ]
