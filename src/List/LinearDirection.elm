@@ -1,6 +1,6 @@
 module List.LinearDirection exposing
     ( fold, order
-    , group
+    , group, takeFrom, dropFrom
     )
 
 {-|
@@ -13,7 +13,7 @@ module List.LinearDirection exposing
 
 ## part
 
-@docs group
+@docs group, takeFrom, dropFrom
 
 -}
 
@@ -92,6 +92,50 @@ group groupSize direction listToGroup =
             |> List.map (order direction)
     , less = less |> order direction
     }
+
+
+{-| Only use a number of elements from one side.
+
+    [ 1, 2, 3, 4 ]
+        |> List.takeFrom FirstToLast 2
+    --> [ 1, 2 ]
+
+    [ 1, 2, 3, 4 ]
+        |> List.takeFrom LastToFirst 2
+    --> [ 3, 4 ]
+
+Named this way to avoid name clashes with `List.take`.
+
+-}
+takeFrom : LinearDirection -> Int -> List a -> List a
+takeFrom direction amount list =
+    case direction of
+        FirstToLast ->
+            List.take amount list
+
+        LastToFirst ->
+            List.drop (List.length list - amount) list
+
+
+{-| Remove a number of elements from one side.
+
+    tail =
+        List.dropFrom FirstToLast 1
+
+    removeLast =
+        List.dropFrom LastToFirst 1
+
+Named this way to avoid name clashes with `List.take`.
+
+-}
+dropFrom : LinearDirection -> Int -> List a -> List a
+dropFrom direction amount list =
+    case direction of
+        FirstToLast ->
+            List.drop amount list
+
+        LastToFirst ->
+            List.take (List.length list - amount) list
 
 
 {-| Keep the order if `FirstToLast`, reverse if `LastToFirst`.
