@@ -12,3 +12,7 @@
 ### 2.1.0
 
 - added `resize`
+
+### 2.2.0
+
+- added `takeFrom` & `dropFrom` in `List.linearDirection`
