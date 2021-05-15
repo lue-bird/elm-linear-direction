@@ -39,6 +39,34 @@ listTests =
                             }
                 )
             ]
+        , describe "takeFrom"
+            [ test "FirstToLast"
+                (\() ->
+                    [ 1, 2, 3, 4, 5 ]
+                        |> List.takeFrom FirstToLast 2
+                        |> Expect.equal [ 1, 2 ]
+                )
+            , test "LastToFirst"
+                (\() ->
+                    [ 1, 2, 3, 4, 5 ]
+                        |> List.takeFrom LastToFirst 2
+                        |> Expect.equal [ 4, 5 ]
+                )
+            ]
+        , describe "dropFrom"
+            [ test "FirstToLast"
+                (\() ->
+                    [ 1, 2, 3, 4, 5 ]
+                        |> List.dropFrom FirstToLast 2
+                        |> Expect.equal [ 3, 4, 5 ]
+                )
+            , test "LastToFirst"
+                (\() ->
+                    [ 1, 2, 3, 4, 5 ]
+                        |> List.dropFrom LastToFirst 2
+                        |> Expect.equal [ 1, 2, 3 ]
+                )
+            ]
         ]
 
 
