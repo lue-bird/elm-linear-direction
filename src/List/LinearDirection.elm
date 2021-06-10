@@ -104,7 +104,7 @@ group groupSize direction listToGroup =
         |> List.takeFrom LastToFirst 2
     --> [ 3, 4 ]
 
-Named this way to avoid name clashes with `List.take`.
+Named this way to avoid name clashes with `List.take` when importing `List.LinearDirection as List`.
 
 -}
 takeFrom : LinearDirection -> Int -> List a -> List a
@@ -125,7 +125,7 @@ takeFrom direction amount list =
     removeLast =
         List.dropFrom LastToFirst 1
 
-Named this way to avoid name clashes with `List.take`.
+Named this way to avoid name clashes with `List.drop` when importing `List.LinearDirection as List`.
 
 -}
 dropFrom : LinearDirection -> Int -> List a -> List a
