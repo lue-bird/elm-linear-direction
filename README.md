@@ -14,7 +14,7 @@ This package's simple goal is allowing you to use the direction as an argument.
 ```elm
 import LinearDirection exposing (LinearDirection(..))
 import List.LinearDirection as List
-import LinearDirection.Array as Array
+import Array.LinearDirection as Array
 
 [ "m", "l", "e" ]
     |> List.fold LastToFirst (++) ""
@@ -31,7 +31,7 @@ last =
 
     ```elm
     import LinearDirection exposing (LinearDirection)
-    import LinearDirection.Array as Array
+    import Array.LinearDirection as Array
 
     updateAt :
         Int -> LinearDirection -> (a -> a) -> Array a -> Array a
