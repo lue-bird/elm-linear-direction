@@ -1,21 +1,20 @@
-## Contribute
+## contribute
 
 **Contributing is appreciated! 💙**
 
-- Changes may be suggested through pull requests.
-- To discuss major changes, open up a feature request issue.
+- suggest changes through pull requests
+- discuss major changes in an issue or in a github Disscussion
 
-## What you can do
+## you
 
-- add new modules like `LinearDirection.Dict` or add to existing ones
+- add new modules like `Dict`/`Set.LinearDirection` or add to existing ones
 - share your thoughts
 
-### Summary Guide
+### guide
 
 commits look like this:
 > do details | make other details & this
 
-#### Category
 | mark     | means   |
 | :------- | :------ |
 | + ...    | add     |
@@ -26,7 +25,7 @@ commits look like this:
 | -< ...   | split   |
 | >- ...   | merge   |
 
-#### Others
+#### others
 | mark        | means         |
 | :---------- | :------------ |
 | #...        | see           |
