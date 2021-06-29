@@ -16,3 +16,7 @@
 ### 2.2.0
 
 - added `takeFrom` & `dropFrom` in `List.linearDirection`
+
+### 2.2.1
+
+- corrected `LinearDirection.Array` to `Array.LinearDirection` in readme
