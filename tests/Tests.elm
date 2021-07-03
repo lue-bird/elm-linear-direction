@@ -146,42 +146,58 @@ arrayTests =
                 )
             ]
         , describe "insertAt"
-            [ test "valid index FirstToLast puts the element after the elements before the index"
-                (\() ->
-                    Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.insertAt 2 FirstToLast 123
-                        |> Expect.equal (Array.fromList [ 1, 2, 123, 3, 4 ])
-                )
-            , test "negative index FirstToLast changes nothing"
-                (\() ->
-                    Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.insertAt -1 FirstToLast 123
-                        |> Expect.equal (Array.fromList [ 1, 2, 3, 4 ])
-                )
-            , test "too high index FirstToLast changes nothing"
-                (\() ->
-                    Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.insertAt 100 FirstToLast 123
-                        |> Expect.equal (Array.fromList [ 1, 2, 3, 4 ])
-                )
-            , test "valid index LastToFirst puts the element after the elements before the index from last"
-                (\() ->
-                    Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.insertAt 2 LastToFirst 123
-                        |> Expect.equal (Array.fromList [ 1, 2, 123, 3, 4 ])
-                )
-            , test "negative index LastToFirst changes nothing"
-                (\() ->
-                    Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.insertAt -1 LastToFirst 123
-                        |> Expect.equal (Array.fromList [ 1, 2, 3, 4 ])
-                )
-            , test "too high index LastToFirst changes nothing"
-                (\() ->
-                    Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.insertAt 100 LastToFirst 123
-                        |> Expect.equal (Array.fromList [ 1, 2, 3, 4 ])
-                )
+            [ describe "FirstToLast"
+                [ test "valid index"
+                    (\() ->
+                        Array.fromList [ 1, 2, 3, 4 ]
+                            |> Array.insertAt 2 FirstToLast 123
+                            |> Expect.equal (Array.fromList [ 1, 2, 123, 3, 4 ])
+                    )
+                , test "length"
+                    (\() ->
+                        Array.fromList [ 1, 2, 3, 4 ]
+                            |> Array.insertAt 4 FirstToLast 123
+                            |> Expect.equal (Array.fromList [ 1, 2, 3, 4, 123 ])
+                    )
+                , test "negative index"
+                    (\() ->
+                        Array.fromList [ 1, 2, 3, 4 ]
+                            |> Array.insertAt -1 FirstToLast 123
+                            |> Expect.equal (Array.fromList [ 1, 2, 3, 4 ])
+                    )
+                , test "too high index"
+                    (\() ->
+                        Array.fromList [ 1, 2, 3, 4 ]
+                            |> Array.insertAt 100 FirstToLast 123
+                            |> Expect.equal (Array.fromList [ 1, 2, 3, 4 ])
+                    )
+                ]
+            , describe "LastToFirst"
+                [ test "valid index"
+                    (\() ->
+                        Array.fromList [ 1, 2, 3, 4 ]
+                            |> Array.insertAt 2 LastToFirst 123
+                            |> Expect.equal (Array.fromList [ 1, 2, 123, 3, 4 ])
+                    )
+                , test "length"
+                    (\() ->
+                        Array.fromList [ 1, 2, 3, 4 ]
+                            |> Array.insertAt 4 LastToFirst 123
+                            |> Expect.equal (Array.fromList [ 123, 1, 2, 3, 4 ])
+                    )
+                , test "negative index"
+                    (\() ->
+                        Array.fromList [ 1, 2, 3, 4 ]
+                            |> Array.insertAt -1 LastToFirst 123
+                            |> Expect.equal (Array.fromList [ 1, 2, 3, 4 ])
+                    )
+                , test "too high index"
+                    (\() ->
+                        Array.fromList [ 1, 2, 3, 4 ]
+                            |> Array.insertAt 100 LastToFirst 123
+                            |> Expect.equal (Array.fromList [ 1, 2, 3, 4 ])
+                    )
+                ]
             ]
         , describe "removeAt"
             [ test "removeAt FirstToLast removes the element at the index"
