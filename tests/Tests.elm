@@ -67,6 +67,32 @@ listTests =
                         |> Expect.equal [ 1, 2, 3 ]
                 )
             ]
+        , describe "at"
+            [ test "FirstToLast at valid index"
+                (\() ->
+                    [ 0, 1, 2, 3, 4 ]
+                        |> List.at 0 LastToFirst
+                        |> Expect.equal (Just 4)
+                )
+            , test "LastToFirst at valid index"
+                (\() ->
+                    [ 0, 1, 2, 3, 4 ]
+                        |> List.at 2 FirstToLast
+                        |> Expect.equal (Just 2)
+                )
+            , test "FirstToLast index >= length"
+                (\() ->
+                    [ 0, 1, 2, 3, 4 ]
+                        |> List.at 5 FirstToLast
+                        |> Expect.equal Nothing
+                )
+            , test "FirstToLast at negative index"
+                (\() ->
+                    [ 0, 1, 2, 3, 4 ]
+                        |> List.at -1 FirstToLast
+                        |> Expect.equal Nothing
+                )
+            ]
         ]
 
 
@@ -96,7 +122,7 @@ arrayTests =
                         |> Array.at 100 LastToFirst
                         |> Expect.equal Nothing
                 )
-            , test "LastToFirstat a valid index"
+            , test "LastToFirst at a valid index"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
                         |> Expect.all
