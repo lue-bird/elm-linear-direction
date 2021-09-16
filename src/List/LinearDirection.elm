@@ -1,17 +1,29 @@
 module List.LinearDirection exposing
-    ( fold, order
+    ( at
+    , fold
+    , order
     , group, takeFrom, dropFrom
     )
 
 {-|
 
 
+## scan
+
+@docs at
+
+
 ## transform
 
-@docs fold, order
+@docs fold
 
 
-## part
+## modify
+
+@docs order
+
+
+### part
 
 @docs group, takeFrom, dropFrom
 
@@ -136,6 +148,41 @@ dropFrom direction amount list =
 
         LastToFirst ->
             List.take (List.length list - amount) list
+
+
+{-| Returns `Just` the element at the given index in the list in a direction:
+
+    [ 0, 1, 2, 3 ]
+        |> List.at 0 LastToFirst
+    --> Just 3
+
+    [ 0, 1, 2, 3 ]
+        |> List.at 2 FirstToLast
+    --> Just 2
+
+Returns `Nothing` if the index is out of range:
+
+    [ 0, 1, 2, 3 ]
+        |> List.at 4 FirstToLast
+    --> Nothing
+
+    [ 0, 1, 2, 3 ]
+        |> List.at -1 FirstToLast
+    --> Nothing
+
+-}
+at : Int -> LinearDirection -> List a -> Maybe a
+at index direction =
+    if index >= 0 then
+        case direction of
+            FirstToLast ->
+                List.drop index >> List.head
+
+            LastToFirst ->
+                takeFrom LastToFirst (index + 1) >> List.head
+
+    else
+        \_ -> Nothing
 
 
 {-| Keep the order if `FirstToLast`, reverse if `LastToFirst`.
