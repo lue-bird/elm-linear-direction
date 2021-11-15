@@ -3,7 +3,7 @@
     "name": "lue-bird/elm-linear-direction",
     "summary": "first to last, last to first",
     "license": "MIT",
-    "version": "2.2.1",
+    "version": "2.3.0",
     "exposed-modules": [
         "LinearDirection",
         "Array.LinearDirection",
