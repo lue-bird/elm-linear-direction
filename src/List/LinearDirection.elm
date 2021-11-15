@@ -34,13 +34,13 @@ import LinearDirection exposing (LinearDirection(..))
 
 {-| Reduce a `List` in a direction.
 
-    List.fold FirstToLast (++) ""
-        [ "l", "i", "v", "e" ]
-    --> "live"
-
-    List.fold LastToFirst (++) ""
-        [ "l", "i", "v", "e" ]
+    [ 'l', 'i', 'v', 'e' ]
+        |> List.fold FirstToLast String.cons ""
     --> "evil"
+
+    [ 'l', 'i', 'v', 'e' ]
+        |> List.fold LastToFirst String.cons ""
+    --> "live"
 
 -}
 fold :

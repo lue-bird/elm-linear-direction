@@ -29,7 +29,7 @@ module Array.LinearDirection exposing
 @docs take, drop, group
 
 
-## unite
+## glue
 
 @docs concat
 
@@ -42,13 +42,13 @@ import List.LinearDirection as List
 
 {-| Reduce an `Array` in a direction.
 
-    Array.fold FirstToLast (++) ""
-        (Array.fromList [ "l", "i", "v", "e" ])
-    --> "live"
-
-    Array.fold LastToFirst (++) ""
-        (Array.fromList [ "l", "i", "v", "e" ])
+    Array.fromList [ 'l', 'i', 'v', 'e' ]
+        |> Array.fold FirstToLast String.cons ""
     --> "evil"
+
+    Array.fromList [ 'l', 'i', 'v', 'e' ]
+        |> Array.fold LastToFirst String.cons ""
+    --> "life"
 
 -}
 fold :
@@ -135,21 +135,21 @@ removeAt index direction array =
         array
 
 
-{-| Append multiple `Array`s in a direction.
+{-| Append a `List` of `Array`s in a direction.
 
-    Array.concat FirstToLast
-        [ Array.fromList [ 2, 4, 6 ]
-        , Array.fromList [ 8 ]
-        , Array.fromList [ 10, 12, 14 ]
-        ]
+    [ Array.fromList [ 2, 4, 6 ]
+    , Array.fromList [ 8 ]
+    , Array.fromList [ 10, 12, 14 ]
+    ]
+        |> Array.concat FirstToLast
     --> Array.fromList
     -->     [ 2, 4, 6, 8, 10, 12, 14 ]
 
-    Array.concat LastToFirst
-        [ Array.fromList [ 2, 4, 6 ]
-        , Array.fromList [ 8 ]
-        , Array.fromList [ 10, 12, 14 ]
-        ]
+    [ Array.fromList [ 2, 4, 6 ]
+    , Array.fromList [ 8 ]
+    , Array.fromList [ 10, 12, 14 ]
+    ]
+        |> Array.concat LastToFirst
     --> Array.fromList
     -->     [ 14, 12, 10, 8, 6, 4, 2 ]
 
@@ -164,21 +164,23 @@ concat direction arrays =
 
 {-| `Just` the element at an index in a direction.
 
-    Array.at 0 LastToFirst
-        (Array.fromList [ "lose", "win", "lose" ])
+    Array.fromList [ "lose", "win", "lose" ]
+        |> Array.at 0 LastToFirst
     --> Just "lose"
 
 
-    Array.at 0 FirstToLast
-        (Array.fromList [ "lose", "win", "lose" ])
+    Array.fromList [ "lose", "win", "lose" ]
+        |> Array.at 0 FirstToLast
     --> Just "lose"
 
 `Nothing`, if the index is out of range.
 
-    Array.at -1 FirstToLast (Array.fromList [ 1, 2, 3 ])
+    Array.fromList [ 1, 2, 3 ]
+        |> Array.at -1 FirstToLast
     --> Nothing
 
-    Array.at 100 FirstToLast (Array.fromList [ 1, 2, 3 ])
+    Array.fromList [ 1, 2, 3 ]
+        |> Array.at 100 FirstToLast
     --> Nothing
 
 -}
@@ -297,7 +299,7 @@ drop amount direction array =
         (Array.fromList [ 1, 2, 3 ])
     --> Array.fromList [ 1, 2 ]
 
-The result is an emmpty array if the index is negative.
+The result is an empty array if the index is negative.
 
     Array.resize LastToFirst -1 0
         (Array.fromList [ 1, 2 ])

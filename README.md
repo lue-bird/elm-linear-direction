@@ -1,7 +1,7 @@
 ## elm-linear-direction
 
-
 I think direction can be better expressed than in
+
 - `foldr` and `foldl`: does `foldr` mean fold right? A quite unclear name
 - no `getr/l`, `setr/l`, but `foldr` and `foldl`?
 - negative indices
@@ -16,9 +16,13 @@ import LinearDirection exposing (LinearDirection(..))
 import List.LinearDirection as List
 import Array.LinearDirection as Array
 
-[ "m", "l", "e" ]
-    |> List.fold LastToFirst (++) ""
---> "elm"
+[ 'l', 'i', 'v', 'e' ]
+    |> List.fold FirstToLast String.cons ""
+--> "evil"
+
+[ 'l', 'i', 'v', 'e' ]
+    |> List.fold LastToFirst String.cons ""
+--> "live"
 
 last : Array a -> Maybe a
 last =
