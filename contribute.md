@@ -3,7 +3,7 @@
 **Contributing is appreciated! 💙**
 
 - suggest changes through pull requests
-- discuss major changes in an issue or in a github Disscussion
+- discuss major changes in an issue or in a github Discussion
 
 ## you
 
