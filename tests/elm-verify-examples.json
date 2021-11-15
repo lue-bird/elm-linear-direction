@@ -1,0 +1,8 @@
+{
+  "root": "../src",
+  "tests": [
+    "LinearDirection",
+    "List.LinearDirection",
+    "Array.LinearDirection"
+  ]
+}
