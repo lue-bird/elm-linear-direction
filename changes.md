@@ -1,22 +1,27 @@
 # changelog
 
-## 2.0.0
+### 2.3.0
 
-- added `List.LinearDirection`
-- renamed `LinearDirection.Array` to `Array.LinearDirection`
-- added `order` for `List` & `Array`
-- added `Array.LinearDirectio.concat`
-- changed argument order for `LinearDirection.toFirstToLast`
-- changed readme: examples & the why
+- added `List.LinearDirection.at`
+- corrected fold examples
+
+### 2.2.1
+
+- corrected `LinearDirection.Array` to `Array.LinearDirection` in readme
+
+### 2.2.0
+
+- added `takeFrom` & `dropFrom` in `List.LinearDirection`
 
 ### 2.1.0
 
 - added `resize`
 
-### 2.2.0
+## 2.0.0
 
-- added `takeFrom` & `dropFrom` in `List.linearDirection`
-
-### 2.2.1
-
-- corrected `LinearDirection.Array` to `Array.LinearDirection` in readme
+- added `List.LinearDirection`
+- renamed `LinearDirection.Array` to `Array.LinearDirection`
+- added `order` for `List` & `Array`
+- added `Array.LinearDirection.concat`
+- changed argument order for `LinearDirection.toFirstToLast`
+- changed readme: examples & the why
