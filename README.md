@@ -42,7 +42,12 @@ last =
     updateAt index direction alter =
         Array.replaceAt index direction
             (alter (Array.at index direction))
-
     ```
 
   - → direction is always explicit
+
+## where this is already used
+
+- [`emptiness-typed`](https://dark.elm.dmy.fr/packages/lue-bird/elm-emptiness-typed/latest/)
+- [`typesafe-array`](https://dark.elm.dmy.fr/packages/lue-bird/elm-typesafe-array/latest/)
+- [`rosetree-path`](https://package.elm-lang.org/packages/lue-bird/elm-rosetree-path/latest/)
