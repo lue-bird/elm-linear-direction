@@ -1,4 +1,4 @@
-## elm-linear-direction
+# [linear-direction](https://dark.elm.dmy.fr/packages/lue-bird/elm-linear-direction/latest/)
 
 I think direction can be better expressed than in
 
