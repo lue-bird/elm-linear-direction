@@ -5,7 +5,7 @@ module List.LinearDirection exposing
     , group, takeFrom, dropFrom
     )
 
-{-|
+{-| `List` operations that can be applied in either direction.
 
 
 ## scan
