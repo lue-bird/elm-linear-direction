@@ -1,4 +1,14 @@
-# changelog
+# changes
+
+## plans for 3.0.0
+
+- in `List.` & `Array.LinearDirection`:
+    - change `.fold dir red init` to `.foldFrom init dir red`
+    - rename `.group` to `toChunksOf`
+
+- only in `List.LinearDirection`:
+    - change `.takeFrom dir n` to `take n dir`
+    - change `.dropFrom dir n` to `drop n dir`
 
 ### 2.3.0
 
