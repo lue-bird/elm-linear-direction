@@ -340,6 +340,6 @@ arrayTests =
 -- used
 
 
-num1234 : Array number
+num1234 : Array number_
 num1234 =
     Array.fromList [ 1, 2, 3, 4 ]

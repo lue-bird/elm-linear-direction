@@ -1,14 +1,20 @@
 module LinearDirection exposing
-    ( LinearDirection(..), opposite
+    ( LinearDirection(..)
+    , opposite
     , toFirstToLast
     )
 
 {-| `FirstToLast`, `LastToFirst`.
 
-@docs LinearDirection, opposite
+@docs LinearDirection
 
 
-## for indices or amounts
+## util
+
+@docs opposite
+
+
+### for indices or amounts
 
 @docs toFirstToLast
 
@@ -35,6 +41,8 @@ opposite direction =
 
 
 {-| Translate an amount or index to one that is used `FirstToLast`.
+
+    import LinearDirection exposing (toFirstToLast)
 
     at index direction array =
         Array.get
