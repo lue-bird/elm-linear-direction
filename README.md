@@ -1,15 +1,15 @@
-# [linear-direction](https://dark.elm.dmy.fr/packages/lue-bird/elm-linear-direction/latest/)
+## [linear direction](https://dark.elm.dmy.fr/packages/lue-bird/elm-linear-direction/latest/)
 
-I think direction can be better expressed than in
+Q: can direction be better expressed than in
 
-- `foldr` and `foldl`: does `foldr` mean fold right? A quite unclear name
-- no `getr/l`, `setr/l`, but `foldr` and `foldl`?
-- negative indices
-  - `Array.slice 0 -1` is handy! But you can't do `slice 2 -0`
-  - Many operations support negative indices, but others don't
-  - not explicit → can have unintended side-effects
+  - `foldr`, `foldl`: does `foldr` mean fold right? A quite unclear name
+  - no `Array.getr/l`, `setr/l` but `foldr`, `foldl`?
+  - negative indices
+      - `Array.slice 0 -1` is handy! But you can't do `slice 2 -0`
+      - many operations support negative indices, but others don't
+      - not explicit → can have unintended side-effects
 
-This package's simple goal is allowing you to use the direction as an argument.
+A: Use the **direction as an argument**
 
 ```elm
 import LinearDirection exposing (LinearDirection(..))
@@ -37,11 +37,13 @@ last =
     import LinearDirection exposing (LinearDirection)
     import Array.LinearDirection as Array
 
-    updateAt :
+    alterAt :
         Int -> LinearDirection -> (a -> a) -> Array a -> Array a
-    updateAt index direction alter =
-        Array.replaceAt index direction
-            (alter (Array.at index direction))
+    alterAt index direction alter =
+        \array ->
+            array
+              |> Array.replaceAt index direction
+                  (array |> Array.at index direction |> alter)
     ```
 
   - → direction is always explicit
