@@ -31,8 +31,8 @@ last =
 ```
 
   - → a less cluttered API, e.g.
-      - `foldFrom` instead of `foldr` `foldl`
-      - `toChunksOf` instead of [`chunksFromLeft`/`Right`](https://package.elm-lang.org/packages/elm-community/list-split/latest/List-Split))
+      - `foldFrom` instead of `foldr`, `foldl`
+      - `toChunksOf` instead of [`chunksFromLeft`/-`Right`](https://package.elm-lang.org/packages/elm-community/list-split/latest/List-Split)
 
   - → deal with both directions at once
 
@@ -55,7 +55,7 @@ last =
 
   - → direction is always explicit
 
-## where this is already being used
+## this is being used in
 
 - [`emptiness-typed`](https://dark.elm.dmy.fr/packages/lue-bird/elm-emptiness-typed/latest/)
 - [`typesafe-array`](https://dark.elm.dmy.fr/packages/lue-bird/elm-typesafe-array/latest/)
