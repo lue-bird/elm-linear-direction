@@ -4,7 +4,7 @@ module Array.Linear exposing
     , padToLength
     , squeezeInAt
     , take, drop, toChunksOf
-    , concat, foldFrom
+    , foldFrom
     )
 
 {-| `Array` operations that can be applied in either direction.
@@ -33,7 +33,7 @@ module Array.Linear exposing
 
 ## transform
 
-@docs fold
+@docs foldFrom
 
 -}
 
