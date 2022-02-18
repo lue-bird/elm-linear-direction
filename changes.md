@@ -1,18 +1,22 @@
-## 3.0.0 plans
+# changelog
 
-- rename ` module List.`, `Array.LinearDirection` to `.Linear`
-    - change `.fold dir red init` to `.foldFrom init dir red`
-    - rename `.group` to `toChunksOf`
+## 3.0.0
+
+- replace module name prefix `.LinearDirection` with `.Linear`
+
+- for `List.` & `Array.Linear`
+    - changed `fold dir red init` to `.foldFrom init dir red`
+    - changed `group : ... -> { groups : ..., less : ... }`
+      to `toChunksOf : ... -> { chunks : ..., remainder : ... }`
     - remove `order`
 
 - only in `List.Linear`:
-    - change `.takeFrom dir n` to `take n dir`
-    - change `.dropFrom dir n` to `drop n dir`
+    - change `takeFrom dir n` to `take n dir`
+    - change `dropFrom dir n` to `drop n dir`
 
 - only in `Array.Linear`:
-    - remove `concat`
-
-# changelog
+    - removed `concat`
+    - changed `resize dir len val` to `padToLength len dir val`
 
 ### 2.3.0
 

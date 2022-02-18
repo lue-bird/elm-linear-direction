@@ -2,7 +2,7 @@
   "root": "../src",
   "tests": [
     "LinearDirection",
-    "List.LinearDirection",
-    "Array.LinearDirection"
+    "List.Linear",
+    "Array.Linear"
   ]
 }

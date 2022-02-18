@@ -1,6 +1,6 @@
 ## [linear direction](https://dark.elm.dmy.fr/packages/lue-bird/elm-linear-direction/latest/)
 
-Q: can direction be better expressed than in
+Q: Can direction be better expressed than in
 
   - `foldr`, `foldl`: does `foldr` mean fold right? A quite unclear name
   - no `Array.getr/l`, `setr/l` but `foldr`, `foldl`?
@@ -9,47 +9,58 @@ Q: can direction be better expressed than in
       - many operations support negative indices, but others don't
       - not explicit → can have unintended side-effects
 
-A: Use the **direction as an argument**
+A: Use the **direction as an argument**:
 
 ```elm
 import LinearDirection exposing (LinearDirection(..))
-import List.LinearDirection as List
-import Array.LinearDirection as Array
+import List.Linear
+import Array exposing (Array)
+import Array.Linear
 
 [ 'l', 'i', 'v', 'e' ]
-    |> List.fold FirstToLast String.cons ""
+    |> List.Linear.foldFrom "" FirstToLast String.cons
 --> "evil"
 
 [ 'l', 'i', 'v', 'e' ]
-    |> List.fold LastToFirst String.cons ""
+    |> List.Linear.foldFrom "" LastToFirst String.cons
 --> "live"
 
-last : Array a -> Maybe a
+last : Array element -> Maybe element
 last =
-    Array.at 0 LastToFirst
+    Array.Linear.at 0 LastToFirst
 ```
 
-  - → a less cluttered API (e.g. one `fold` instead of `foldr` `foldl` or `group` instead of [`chunksFromLeft`/`Right`](https://package.elm-lang.org/packages/elm-community/list-split/latest/List-Split))
+  - → a less cluttered API, e.g.
+      - `foldFrom` instead of `foldr` `foldl`
+      - `toChunksOf` instead of [`chunksFromLeft`/`Right`](https://package.elm-lang.org/packages/elm-community/list-split/latest/List-Split))
 
   - → deal with both directions at once
 
     ```elm
     import LinearDirection exposing (LinearDirection)
-    import Array.LinearDirection as Array
+    import Array exposing (Array)
+    import Array.Linear
 
     alterAt :
         Int -> LinearDirection -> (a -> a) -> Array a -> Array a
     alterAt index direction alter =
         \array ->
             array
-              |> Array.replaceAt index direction
-                  (array |> Array.at index direction |> alter)
+                |> Array.Linear.replaceAt index direction
+                    (array
+                        |> Array.Linear.at index direction
+                        |> alter
+                    )
     ```
 
   - → direction is always explicit
 
-## where this is already used
+## where this is already being used
 
 - [`emptiness-typed`](https://dark.elm.dmy.fr/packages/lue-bird/elm-emptiness-typed/latest/)
 - [`typesafe-array`](https://dark.elm.dmy.fr/packages/lue-bird/elm-typesafe-array/latest/)
-- [`rosetree-path`](https://package.elm-lang.org/packages/lue-bird/elm-rosetree-path/latest/)
+- [`rosetree-path`](https://dark.elm.dmy.fr/packages/lue-bird/elm-rosetree-path/latest/)
+
+## suggestions?
+
+→ See [contributing.md](https://github.com/lue-bird/elm-linear-direction/blob/master/contributing.md)
