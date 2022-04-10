@@ -6,6 +6,7 @@ module Order exposing
     , char, string
     , Case(..), upperLower, lowerUpper
     , by, downOnTie
+    , reverse
     )
 
 {-| Comparing 2 things.
@@ -41,6 +42,11 @@ to avoid converting too often.
 @docs by, downOnTie
 
 
+### alter
+
+@docs reverse
+
+
 ## prior art
 
   - [`matthewsj/elm-ordering`](https://dark.elm.dmy.fr/packages/matthewsj/elm-ordering/latest/Ordering)
@@ -52,6 +58,7 @@ to avoid converting too often.
       - API is a bit scuffed: multiple andThens will be nested instead of flat, ...
   - [`rtfeldman/elm-sorter-experiment`](https://dark.elm.dmy.fr/packages/rtfeldman/elm-sorter-experiment/latest/Sort)
     wrapped in an opaque `type` → more verbose
+  - ... know others? → PR
 
 -}
 
@@ -457,6 +464,29 @@ onEQ orderBreakingTie =
 
             GT ->
                 GT
+
+
+{-| `a < b  ⇆  a > b`
+
+    [ "b", "c", "a" ]
+        |> List.sortWith
+            (Order.string { case_ = Order.tie })
+    --> [ "a", "b", "c" ]
+
+    [ "b", "c", "a" ]
+        |> List.sortWith
+            (Order.string { case_ = Order.tie }
+                |> Order.reverse
+            )
+    --> [ "c", "b", "a" ]
+
+-}
+reverse : Ordering orderable -> Ordering orderable
+reverse =
+    \order ->
+        \o0 o1 ->
+            -- ↓ arguments flipped
+            order o1 o0
 
 
 
