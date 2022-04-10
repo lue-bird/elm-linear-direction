@@ -1,6 +1,6 @@
 ## 4.0.0 plans
 
-  - switch order of `-at index direction` to `-at direction index`
+  - switch order of `-at/take index direction` to `-at/take direction index`
 
 # changelog
 
