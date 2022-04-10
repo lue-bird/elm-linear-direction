@@ -3,6 +3,7 @@
   "tests": [
     "LinearDirection",
     "List.Linear",
-    "Array.Linear"
+    "Array.Linear",
+    "Order"
   ]
 }
