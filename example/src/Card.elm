@@ -1,0 +1,136 @@
+module Card exposing (Card(..), CardNormal, order)
+
+import Order exposing (Ordering)
+import RecordWithoutConstructorFunction exposing (RecordWithoutConstructorFunction)
+
+
+type Card
+    = Normal CardNormal
+    | Joker
+
+
+type alias CardNormal =
+    RecordWithoutConstructorFunction
+        { value : Value, suite : Suite }
+
+
+order : Ordering Card
+order =
+    \card0 card1 ->
+        case ( card0, card1 ) of
+            -- match all variants with _values_
+            ( Normal normal0, Normal normal1 ) ->
+                normalOrder normal0 normal1
+
+            _ ->
+                -- sort others according to tag "rank"
+                Order.by
+                    ( \card ->
+                        case card of
+                            Normal _ ->
+                                0
+
+                            Joker ->
+                                1
+                    , Order.int
+                    )
+                    card0
+                    card1
+
+
+normalOrder : Ordering CardNormal
+normalOrder =
+    Order.downOnTie
+        [ Order.by ( .suite, suiteOrder )
+        , Order.by ( .value, valueOrder )
+        ]
+
+
+type Suite
+    = Clubs
+    | Hearts
+    | Diamonds
+    | Spades
+
+
+type Value
+    = Two
+    | Three
+    | Four
+    | Five
+    | Six
+    | Seven
+    | Eight
+    | Nine
+    | Ten
+    | Jack
+    | Queen
+    | King
+    | Ace
+
+
+suiteOrder : Ordering Suite
+suiteOrder =
+    Order.by
+        ( \suite ->
+            case suite of
+                Clubs ->
+                    0
+
+                Hearts ->
+                    1
+
+                Diamonds ->
+                    2
+
+                Spades ->
+                    3
+        , Order.int
+        )
+
+
+valueOrder : Ordering Value
+valueOrder =
+    Order.by
+        ( \value ->
+            case value of
+                Two ->
+                    0
+
+                Three ->
+                    1
+
+                Four ->
+                    2
+
+                Five ->
+                    3
+
+                Six ->
+                    4
+
+                Seven ->
+                    5
+
+                Eight ->
+                    6
+
+                Nine ->
+                    7
+
+                Ten ->
+                    8
+
+                Jack ->
+                    9
+
+                Queen ->
+                    10
+
+                King ->
+                    11
+
+                Ace ->
+                    12
+        , Order.int
+        )
