@@ -401,6 +401,11 @@ replaceWith elementReplacement =
         |> Array.Linear.take ( Up, 100 )
     --> Array.fromList [ 1, 2, 3 ]
 
+`Array.empty` if the amount of elements to take is negative.
+
+    import Linear exposing (DirectionLinear(..))
+    import Array
+
     Array.fromList [ 1, 2, 3 ]
         |> Array.Linear.take ( Up, -100 )
     --> Array.empty
@@ -437,7 +442,7 @@ take ( direction, lengthToTake ) =
         |> Array.Linear.drop ( Up, 100 )
     --> Array.empty
 
-Nothing is dropped if the index is negative.
+Nothing is dropped if the amount of elements to drop is negative.
 
     import Linear exposing (DirectionLinear(..))
     import Array
