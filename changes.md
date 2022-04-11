@@ -1,6 +1,12 @@
 ## 5.0.0 plans
 
   - switch to `bounded-nat` for index & length
+  - in `Array.Linear`
+      - remove `access` in favor of `at`
+      - remove `replaceWith replacement`
+        in favor of `alter (\_ -> replacement)`
+  - in `List.Linear`
+      - remove `access` in favor of `at`
 
 # changelog
 
