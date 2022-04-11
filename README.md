@@ -106,7 +106,7 @@ userOrder =
 
 [↑ other examples](https://github.com/lue-bird/elm-linear-direction/blob/master/example/src/Card.elm)
 
-## where `elm-linear-direction` is already being used
+## where `linear direction` is already being used
 
   - [`emptiness-typed`](https://dark.elm.dmy.fr/packages/lue-bird/elm-emptiness-typed/latest/)
   - [`typesafe-array`](https://dark.elm.dmy.fr/packages/lue-bird/elm-typesafe-array/latest/)
