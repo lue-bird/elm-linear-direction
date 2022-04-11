@@ -2,7 +2,7 @@ module Order exposing
     ( Ordering
     , tie
     , int, float
-    , tuple, list
+    , tuple, maybe, list
     , char, string
     , Case(..), upperLower, lowerUpper
     , by, downOnTie
@@ -18,7 +18,7 @@ module Order exposing
 
 @docs tie
 @docs int, float
-@docs tuple, list
+@docs tuple, maybe, list
 @docs char, string
 
 
@@ -213,7 +213,8 @@ string order =
 
 {-| `Order` `Nothing` < `Just`
 
-**Should not be exposed**
+    Order.maybe (Just -99999) Nothing
+    --> GT
 
 -}
 maybe : Ordering content -> Ordering (Maybe content)
