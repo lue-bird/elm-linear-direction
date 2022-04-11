@@ -2,7 +2,7 @@ module Order exposing
     ( Ordering
     , tie
     , int, float
-    , tuple, maybe, list
+    , tuple, list
     , char, string
     , Case(..), upperLower, lowerUpper
     , by, downOnTie
@@ -18,7 +18,7 @@ module Order exposing
 
 @docs tie
 @docs int, float
-@docs tuple, maybe, list
+@docs tuple, list
 @docs char, string
 
 For string-number chunked text,
@@ -63,12 +63,13 @@ to avoid converting too often.
 -}
 
 
-{-| An `Ordering` to `sortWith`,
-make comparisons, and so on:
+{-| An `Ordering` to `sortWith`, make comparisons, and so on:
 
     cardsSort : List Card -> List Card
     cardsSort =
-        List.sortWith cardOrdering
+        List.sortWith cardOrder
+
+    cardOrder : Ordering Card
 
 -}
 type alias Ordering orderable =
@@ -97,7 +98,7 @@ int =
 -}
 char : { case_ : Ordering Case } -> Ordering Char
 char order =
-    compare
+    by ( Char.toLower, compare )
         |> onTie
             (by
                 ( casing
@@ -207,6 +208,9 @@ string order =
 
 
 {-| `Order` `Nothing` < `Just`
+
+**Should not be exposed**
+
 -}
 maybe : Ordering content -> Ordering (Maybe content)
 maybe elementOrder =
@@ -225,6 +229,32 @@ maybe elementOrder =
                 elementOrder content0 content1
 
 
+{-| `Order` `Err` < `Ok`
+
+**Should not be exposed**
+
+-}
+result :
+    { error : Ordering error
+    , ok : Ordering ok
+    }
+    -> Ordering (Result error ok)
+result caseOrder =
+    \result0 result1 ->
+        case ( result0, result1 ) of
+            ( Err error0, Err error1 ) ->
+                caseOrder.error error0 error1
+
+            ( Ok content0, Ok content1 ) ->
+                caseOrder.ok content0 content1
+
+            ( Err _, Ok _ ) ->
+                LT
+
+            ( Ok _, Err _ ) ->
+                GT
+
+
 {-| Order `List`s by elements first to last.
 
     Order.list Order.int
@@ -236,11 +266,13 @@ maybe elementOrder =
 list : Ordering element -> Ordering (List element)
 list elementOrder =
     map2 listUncons
-        (maybe
-            (\( head0, tail0 ) ( head1, tail1 ) ->
-                elementOrder head0 head1
-                    |> onEQ (\() -> list elementOrder tail0 tail1)
-            )
+        (result
+            { error = tie
+            , ok =
+                \( head0, tail0 ) ( head1, tail1 ) ->
+                    elementOrder head0 head1
+                        |> onEQ (\() -> list elementOrder tail0 tail1)
+            }
         )
 
 
@@ -271,10 +303,9 @@ tuple partOrders =
 
 #### access fields in a record
 
-    List.sortWith
-        (Order.by ( .name, Order.string { case_ = Order.tie } ))
-
     [ { name = "Bo" }, { name = "Amy" }, { name = "Cam" } ]
+        |> List.sortWith
+            (Order.by ( .name, Order.string { case_ = Order.tie } ))
     --> [ { name = "Amy" }, { name = "Bo" }, { name = "Cam" } ]
 
 
@@ -330,6 +361,13 @@ tuple partOrders =
         RecordWithoutConstructorFunction
             { value : Value, suite : Suite }
 
+    normalOrder : Ordering CardNormal
+    normalOrder =
+        Order.downOnTie
+            [ Order.by ( .suite, suiteOrder )
+            , Order.by ( .value, valueOrder )
+            ]
+
     order : Ordering Card
     order =
         \card0 card1 ->
@@ -353,12 +391,27 @@ tuple partOrders =
                         card0
                         card1
 
-    normalOrder : Ordering CardNormal
-    normalOrder =
-        Order.downOnTie
-            [ Order.by ( .suite, suiteOrder )
-            , Order.by ( .value, valueOrder )
-            ]
+Use ↑ once your type union grows to have lots of variants
+where exhaustive matching has n^2 branches
+
+For simple type unions with only 2 variants:
+
+    order : Ordering Card
+    order =
+        \card0 card1 ->
+            case ( card0, card1 ) of
+                -- match all variants with _values_
+                ( Normal normal0, Normal normal1 ) ->
+                    normalOrder normal0 normal1
+
+                ( Normal _, Joker ) ->
+                    GT
+
+                ( Joker, Normal _ ) ->
+                    LT
+
+                ( Joker, Joker ) ->
+                    EQ
 
 Pretty neat stuff!
 
@@ -499,12 +552,17 @@ map2 argumentMap transform2Mapped =
         transform2Mapped (argumentMap argument0) (argumentMap argument1)
 
 
-listUncons : List element -> Maybe ( element, List element )
+listUncons :
+    List element
+    ->
+        Result
+            { expectedListFilled : () }
+            ( element, List element )
 listUncons =
     \list_ ->
         case list_ of
             [] ->
-                Nothing
+                { expectedListFilled = () } |> Err
 
             head :: tail ->
-                ( head, tail ) |> Just
+                ( head, tail ) |> Ok

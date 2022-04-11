@@ -13,7 +13,29 @@ type alias CardNormal =
     RecordWithoutConstructorFunction
         { value : Value, suite : Suite }
 
+{- For simple type unions with only 2 variants:
 
+    order : Ordering Card
+    order =
+        \card0 card1 ->
+            case ( card0, card1 ) of
+                -- match all variants with _values_
+                ( Normal normal0, Normal normal1 ) ->
+                    normalOrder normal0 normal1
+
+                ( Normal _, Joker ) ->
+                    GT
+                
+                ( Joker, Normal _ ) ->
+                    LT
+                
+                ( Joker, Joker ) ->
+                    EQ
+
+Use ↓ once your type union grows to have lots of variants
+where exhaustive matching has n^2 branches
+
+-}
 order : Ordering Card
 order =
     \card0 card1 ->
@@ -36,6 +58,8 @@ order =
                     )
                     card0
                     card1
+
+
 
 
 normalOrder : Ordering CardNormal
