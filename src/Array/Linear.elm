@@ -1,10 +1,11 @@
 module Array.Linear exposing
-    ( access
+    ( at
     , foldFrom
-    , replaceWith, remove, insert
+    , remove, insert
     , padTo
     , take, drop, toChunks
     , squeezeIn
+    , access, replaceWith
     )
 
 {-| `Array` operations that can be applied in either direction.
@@ -12,7 +13,7 @@ module Array.Linear exposing
 
 ## scan
 
-@docs access
+@docs at
 
 
 ## transform
@@ -22,7 +23,7 @@ module Array.Linear exposing
 
 ### alter
 
-@docs replaceWith, remove, insert
+@docs remove, insert
 @docs padTo
 
 
@@ -34,6 +35,11 @@ module Array.Linear exposing
 ### glue
 
 @docs squeezeIn
+
+
+## deprecated
+
+@docs access, replaceWith
 
 -}
 
@@ -270,7 +276,15 @@ concat direction arrays =
             )
 
 
-{-| The element at an index in a direction.
+{-|
+
+  - @deprecated
+
+    Removed with the next major version
+
+    → call [`Array.Linear.at`](#at) directly.
+
+The element at an index in a direction.
 
     import Linear exposing (DirectionLinear(..))
     import Array
@@ -309,16 +323,49 @@ access :
     -> Result ExpectedIndexInRange element
 access =
     \array ->
+        array.structure |> at array.location
+
+
+{-| The element at an index in a direction.
+
+    import Linear exposing (DirectionLinear(..))
+    import Array
+
+    Array.fromList [ "lose", "win", "lose" ]
+        |> Array.Linear.at ( Down, 0 )
+    --> "lose" |> Ok
+
+
+    Array.fromList [ "lose", "win", "lose" ]
+        |> Array.Linear.at ( Up, 0 )
+    --> "lose" |> Ok
+
+`Err` if the index is out of range.
+
+    import Linear exposing (DirectionLinear(..), ExpectedIndexInRange(..))
+    import Array
+
+    Array.fromList [ 1, 2, 3 ]
+        |> Array.Linear.at ( Up, -1 )
+    --> Err (ExpectedIndexForLength 3)
+
+    Array.fromList [ 1, 2, 3 ]
+        |> Array.Linear.at ( Up, 100 )
+    --> Err (ExpectedIndexForLength 3)
+
+-}
+at :
+    ( DirectionLinear, Int )
+    -> Array element
+    -> Result ExpectedIndexInRange element
+at ( direction, index ) =
+    \array ->
         let
             length =
                 -- O(1)
-                array.structure |> Array.length
+                array |> Array.length
 
             indexUp =
-                let
-                    ( direction, index ) =
-                        array.location
-                in
                 case direction of
                     Up ->
                         index
@@ -327,7 +374,7 @@ access =
                         length - 1 - index
         in
         if indexUp >= 0 then
-            array.structure
+            array
                 |> Array.get indexUp
                 |> Result.fromMaybe
                     (ExpectedIndexForLength length)
@@ -336,7 +383,15 @@ access =
             ExpectedIndexForLength length |> Err
 
 
-{-| Set the element at an index in a direction.
+{-|
+
+  - @deprecated
+
+    Removed with the next major version
+
+    → call [`Array.Linear.alter (\_ -> replacement)`](#alter)
+
+Set the element at an index in a direction.
 
     import Linear exposing (DirectionLinear(..))
     import Array
