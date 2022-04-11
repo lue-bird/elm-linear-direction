@@ -29,8 +29,7 @@ last : Array element -> Err { expectedArrayFilled : () } element
 last =
     \array ->
         array
-            |> Linear.at ( Down, 0 )
-            |> Array.Linear.access
+            |> Array.Linear.at ( Down, 0 )
             |> Result.mapError
                 (\_ -> { expectedArrayFilled = () })
 ```
@@ -57,8 +56,8 @@ last =
             array
                 |> Array.Linear.replaceWith
                     (\() ->
-                        array
-                            |> Array.Linear.access
+                        array.structure
+                            |> Array.Linear.at array.location
                             |> alter
                     )
     ```

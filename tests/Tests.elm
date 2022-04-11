@@ -70,14 +70,14 @@ listTests =
                         |> Expect.equalLists [ 1, 2, 3 ]
                 )
             ]
-        , describe "access"
+        , describe "at"
             [ Test.fuzz
                 (Fuzz.constant
                     (\list direction -> { list = list, direction = direction })
                     |> Fuzz.andMap (Fuzz.list Fuzz.int)
                     |> Fuzz.andMap directionLinearFuzz
                 )
-                "at valid index"
+                "valid index"
                 (\{ list, direction } ->
                     let
                         reverseIfLastToFirst =
@@ -95,9 +95,7 @@ listTests =
                                 |> reverseIfLastToFirst
                                 |> List.map
                                     (\i ->
-                                        list
-                                            |> Linear.at ( direction, i )
-                                            |> List.Linear.access
+                                        list |> List.Linear.at ( direction, i )
                                     )
                             )
                 )
@@ -114,8 +112,7 @@ listTests =
                             list |> List.length
                     in
                     list
-                        |> Linear.at ( direction, length )
-                        |> List.Linear.access
+                        |> List.Linear.at ( direction, length )
                         |> Expect.equal (Err (ExpectedIndexForLength length))
                 )
             , Test.fuzz
@@ -127,8 +124,7 @@ listTests =
                 "negative index → Nothing"
                 (\{ list, direction } ->
                     list
-                        |> Linear.at ( direction, -1 )
-                        |> List.Linear.access
+                        |> List.Linear.at ( direction, -1 )
                         |> Expect.equal
                             (Err (ExpectedIndexForLength (list |> List.length)))
                 )
@@ -183,14 +179,14 @@ listTests =
 arrayTests : Test
 arrayTests =
     describe "array"
-        [ describe "access"
+        [ describe "at"
             [ Test.fuzz
                 (Fuzz.constant
                     (\array direction -> { array = array, direction = direction })
                     |> Fuzz.andMap (Fuzz.array Fuzz.int)
                     |> Fuzz.andMap directionLinearFuzz
                 )
-                "at valid index"
+                "valid index"
                 (\{ array, direction } ->
                     let
                         toUp index =
@@ -207,9 +203,7 @@ arrayTests =
                             (Array.initialize
                                 (array |> Array.length)
                                 (\i ->
-                                    array
-                                        |> Linear.at ( direction, i |> toUp )
-                                        |> Array.Linear.access
+                                    array |> Array.Linear.at ( direction, i |> toUp )
                                 )
                             )
                 )
@@ -226,8 +220,7 @@ arrayTests =
                             array |> Array.length
                     in
                     array
-                        |> Linear.at ( direction, length )
-                        |> Array.Linear.access
+                        |> Array.Linear.at ( direction, length )
                         |> Expect.equal
                             (Err (ExpectedIndexForLength length))
                 )
@@ -240,8 +233,7 @@ arrayTests =
                 "index negative"
                 (\{ array, direction } ->
                     array
-                        |> Linear.at ( direction, -1 )
-                        |> Array.Linear.access
+                        |> Array.Linear.at ( direction, -1 )
                         |> Expect.equal
                             (Err (ExpectedIndexForLength (array |> Array.length)))
                 )
