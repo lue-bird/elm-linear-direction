@@ -5,7 +5,7 @@
 
 ## you can
 
-- add new modules like `Dict`/`Set.LinearDirection` or add to existing ones
+- add new operations
 - share your thoughts
 
 ### commits
