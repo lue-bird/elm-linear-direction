@@ -44,10 +44,14 @@ module Order exposing
       - bad naming `byField`: `byField Tuple.first`, ... are also possible
       - clutter `isOrdered`, both `byField` & `byFieldWith`, ...
       - verbose `... |> breakTiesWith ...` chain instead of `downOnTie [ ... ]`
+      - missing `list`, `maybe`, ... orderings
   - [`TSFoster/elm-compare`](https://dark.elm.dmy.fr/packages/TSFoster/elm-compare/latest/Compare)
       - API is a bit scuffed: multiple andThens will be nested instead of flat, ...
+      - missing `list`, `maybe`, ... compare operations
   - [`rtfeldman/elm-sorter-experiment`](https://dark.elm.dmy.fr/packages/rtfeldman/elm-sorter-experiment/latest/Sort)
-    wrapped in an opaque `type` → more verbose
+      - wrapped in an opaque `type` → more verbose
+      - missing `list`, `maybe`, ... sorters
+      - `Sort.Set` & `Sort.Dict` are very nice! You can even use `Sort.Set.empty (Sorter.custom Order.x)` if you wanted
   - ... know others? → PR
 
 -}
