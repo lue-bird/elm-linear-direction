@@ -1,13 +1,154 @@
-## 4.0.0 plans
+## 5.0.0 plans
 
-  - switch order of `-at/take index direction` to `-at/take direction index`
+  - switch to `bounded-nat` for index & length
 
 # changelog
 
-### 3.1.0
+### 4.0.0
 
-  - added `List.Linear.alterAt`
+  - renamed `module LinearDirection` to `Linear`
+      - changed
+        ```elm
+        type LinearDirection
+            = FirstToLast
+            | LastToFirst
+        ```
+        to
+        ```elm
+        type DirectionLinear
+            = Up
+            | Down
+        ```
+          - 👍 less specific → can be used for `Set`, `Dict`, relative location, ...
+          - 👎 less clear in situations where it's from one end to the other
+          - 👍 short, not verbose
+      - removed
+        ```elm
+        toFirstToLast : LinearDirection -> { length : Int } -> Int -> Int
+        ```
+          - unnecessary `length` evaluations
+          - `case direction of ...` can be understood more easily
+          - not always applicable for amounts
+      - added
+        ```elm
+        type ExpectedIndexInRange
+            = ExpectedIndexInLength Int
+        ```
+      - added
+        ```elm
+        at :
+            location
+            -> structure
+            -> { structure : structure, location : location }
+        ```
+  - in `Array.Linear`
+      - changed `drop index direction` to `drop ( direction, index )`
+      - changed `take index direction` to `take ( direction, index )`
+      - changed `foldFrom init direction reduce`
+        to `foldFrom ( init, direction, reduce )`
+      - changed
+        ```elm
+        ... |> Array.Linear.at index direction
+        : Maybe
+        ```
+        to
+        ```elm
+        ...
+          |> Linear.at ( direction, index )
+          |> Array.Linear.access
+        : Result ExpectedIndexInRange
+        ```
+      - changed
+        ```elm
+        ... |> Array.Linear.insertAt index direction toInsert
+        ```
+        to
+        ```elm
+        ...
+          |> Linear.at ( direction, index )
+          |> Array.Linear.insert (\() -> toInsert)
+        ```
+      - changed
+        ```elm
+        squeezeInAt :
+            Int
+            -> LinearDirection
+            -> Array element
+            -> Array element
+            -> Array element
+        ```
+        to
+        ```elm
+        squeezeIn :
+            Array.Array element
+            -> { structure : Array.Array element
+               , location : ( Linear.DirectionLinear, Basics.Int )
+               }
+            -> Array.Array element
+        ```
+      - changed
+        ```elm
+        ... |> Array.Linear.removeAt index direction toInsert
+        ```
+        to
+        ```elm
+        ...
+          |> Linear.at ( direction, index )
+          |> Array.Linear.remove
+        ```
+       - changed
+        ```elm
+        padToLength :
+            Int -> LinearDirection -> element -> Array element -> Array element
+        ```
+        to
+        ```elm
+        padTo :
+            { lengthMinimum : Basics.Int
+            , pad :
+                  ( Linear.DirectionLinear, Basics.Int -> Array.Array element )
+            }
+            -> Array.Array element
+            -> Array.Array element
+        ```
+      - changed
+        ```elm
+        toChunksOf :
+            Int
+            -> LinearDirection
+            -> Array element
+            -> { chunks : Array (Array element), remainder : Array element }
+        ```
+        to
+        ```elm
+        toChunks :
+            { length : Basics.Int, remainder : Linear.DirectionLinear }
+            -> Array.Array element
+            -> { chunks : Array.Array (Array.Array element)
+               , remainder : Array.Array element
+               }
+        ```
+  - in `List.Linear`
+      - changed `drop index direction` to `drop ( direction, index )`
+      - changed `take index direction` to `take ( direction, index )`
+      - changed `foldFrom init direction reduce`
+        to `foldFrom ( init, direction, reduce )`
+      - changed
+        ```elm
+        ... |> List.Linear.at index direction
+        : Maybe
+        ```
+        to
+        ```elm
+        ...
+          |> Linear.at ( direction, index )
+          |> List.Linear.access
+        : Result ExpectedIndexInRange
+        ```
+      - added `alter`
   - added `module Order`
+  - added `module Set.Linear`
+  - added `module Dict.Linear`
 
 ## 3.0.0
 
