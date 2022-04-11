@@ -21,16 +21,6 @@ module Order exposing
 @docs tuple, list
 @docs char, string
 
-For string-number chunked text,
-you can use [`mcordova47/`: `NaturalOrdering.compare`](https://dark.elm.dmy.fr/packages/mcordova47/elm-natural-ordering/latest/NaturalOrdering#compare)
-
-    NaturalOrdering.compare "2" "10"
-    --> LT
-
-Personally, I'd just store the `String` as a `List (Letters | Nat)`
-and order that
-to avoid converting too often.
-
 
 ### casing
 
@@ -194,6 +184,20 @@ casing =
         "hello, human!"
         "hello, Human"
     --> LT
+
+For string-number chunked text,
+you can use [`mcordova47/`: `NaturalOrdering.compare`](https://dark.elm.dmy.fr/packages/mcordova47/elm-natural-ordering/latest/NaturalOrdering#compare)
+
+    NaturalOrdering.compare "abc2.tff" "abc10.tff"
+    --→ LT
+
+Personally, I'd just store the `String` as something like
+
+    type TextChunked
+        = TextChunked ( String, Maybe (List ( Int, String )) )
+
+and order that
+to avoid converting too often.
 
 -}
 string : { case_ : Ordering Case } -> Ordering String
