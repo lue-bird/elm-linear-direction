@@ -213,7 +213,7 @@ string order =
 
 {-| `Order` `Nothing` < `Just`
 
-    Order.maybe (Just -99999) Nothing
+    Order.maybe Order.int (Just -99999) Nothing
     --> GT
 
 -}
