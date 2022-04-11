@@ -4,6 +4,17 @@
 
 # changelog
 
+### 4.1.0
+
+  - in `Array.Linear`
+      - added `at`
+      - deprecated `access` in favor of `at`
+      - deprecated `replaceWith replacement`
+        in favor of `alter (\_ -> replacement)`
+  - in `List.Linear`
+      - added `at`
+      - deprecated `access` in favor of `at`
+
 ### 4.0.0
 
   - renamed `module LinearDirection` to `Linear`
