@@ -429,7 +429,7 @@ take ( direction, lengthToTake ) =
         \_ -> Array.empty
 
 
-{-| After a certain number of elements from one side.
+{-| Remove a given number of elements from one side.
 
     import Linear exposing (DirectionLinear(..))
     import Array
