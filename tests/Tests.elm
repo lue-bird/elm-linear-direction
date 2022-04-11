@@ -1,16 +1,17 @@
 module Tests exposing (suite)
 
-import Array exposing (Array)
+import Array
 import Array.Linear
 import Expect
-import LinearDirection exposing (LinearDirection(..))
+import Fuzz exposing (Fuzzer)
+import Linear exposing (DirectionLinear(..), ExpectedIndexInRange(..))
 import List.Linear
 import Test exposing (Test, describe, test)
 
 
 suite : Test
 suite =
-    describe "elm-linear-direction"
+    describe "linear-direction"
         [ arrayTests
         , listTests
         ]
@@ -19,78 +20,161 @@ suite =
 listTests : Test
 listTests =
     describe "list"
-        [ describe "toChunksOf"
-            [ test "FirstToLast"
+        [ describe "toChunks"
+            [ test "Up"
                 (\() ->
                     [ 1, 2, 3, 4, 5, 6, 7 ]
-                        |> List.Linear.toChunksOf 3 FirstToLast
+                        |> List.Linear.toChunks
+                            { length = 3, remainder = Up }
                         |> Expect.equal
                             { chunks = [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
                             , remainder = [ 7 ]
                             }
                 )
-            , test "LastToFirst"
+            , test "Down"
                 (\() ->
                     [ 1, 2, 3, 4, 5, 6, 7 ]
-                        |> List.Linear.toChunksOf 3 LastToFirst
+                        |> List.Linear.toChunks
+                            { length = 3, remainder = Down }
                         |> Expect.equal
                             { remainder = [ 1 ]
                             , chunks = [ [ 2, 3, 4 ], [ 5, 6, 7 ] ]
                             }
                 )
             ]
-        , describe "takeFrom"
-            [ test "FirstToLast"
+        , describe "take"
+            [ test "Up"
                 (\() ->
                     [ 1, 2, 3, 4, 5 ]
-                        |> List.Linear.take 2 FirstToLast
-                        |> Expect.equal [ 1, 2 ]
+                        |> List.Linear.take ( Up, 2 )
+                        |> Expect.equalLists [ 1, 2 ]
                 )
-            , test "LastToFirst"
+            , test "Down"
                 (\() ->
                     [ 1, 2, 3, 4, 5 ]
-                        |> List.Linear.take 2 LastToFirst
-                        |> Expect.equal [ 4, 5 ]
+                        |> List.Linear.take ( Down, 2 )
+                        |> Expect.equalLists [ 4, 5 ]
                 )
             ]
-        , describe "dropFrom"
-            [ test "FirstToLast"
+        , describe "drop"
+            [ test "Up"
                 (\() ->
                     [ 1, 2, 3, 4, 5 ]
-                        |> List.Linear.drop FirstToLast 2
-                        |> Expect.equal [ 3, 4, 5 ]
+                        |> List.Linear.drop ( Up, 2 )
+                        |> Expect.equalLists [ 3, 4, 5 ]
                 )
-            , test "LastToFirst"
+            , test "Down"
                 (\() ->
                     [ 1, 2, 3, 4, 5 ]
-                        |> List.Linear.drop LastToFirst 2
-                        |> Expect.equal [ 1, 2, 3 ]
+                        |> List.Linear.drop ( Down, 2 )
+                        |> Expect.equalLists [ 1, 2, 3 ]
                 )
             ]
-        , describe "at"
-            [ test "FirstToLast at valid index"
-                (\() ->
-                    [ 0, 1, 2, 3, 4 ]
-                        |> List.Linear.at 0 LastToFirst
-                        |> Expect.equal (Just 4)
+        , describe "access"
+            [ Test.fuzz
+                (Fuzz.constant
+                    (\list direction -> { list = list, direction = direction })
+                    |> Fuzz.andMap (Fuzz.list Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
                 )
-            , test "LastToFirst at valid index"
-                (\() ->
-                    [ 0, 1, 2, 3, 4 ]
-                        |> List.Linear.at 2 FirstToLast
-                        |> Expect.equal (Just 2)
+                "at valid index"
+                (\{ list, direction } ->
+                    let
+                        reverseIfLastToFirst =
+                            case direction of
+                                Up ->
+                                    identity
+
+                                Down ->
+                                    List.reverse
+                    in
+                    list
+                        |> List.map Ok
+                        |> Expect.equal
+                            (List.range 0 ((list |> List.length) - 1)
+                                |> reverseIfLastToFirst
+                                |> List.map
+                                    (\i ->
+                                        list
+                                            |> Linear.at ( direction, i )
+                                            |> List.Linear.access
+                                    )
+                            )
                 )
-            , test "FirstToLast index >= length"
-                (\() ->
-                    [ 0, 1, 2, 3, 4 ]
-                        |> List.Linear.at 5 FirstToLast
-                        |> Expect.equal Nothing
+            , Test.fuzz
+                (Fuzz.constant
+                    (\list direction -> { list = list, direction = direction })
+                    |> Fuzz.andMap (Fuzz.list Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
                 )
-            , test "FirstToLast at negative index"
-                (\() ->
-                    [ 0, 1, 2, 3, 4 ]
-                        |> List.Linear.at -1 FirstToLast
-                        |> Expect.equal Nothing
+                "index >= length"
+                (\{ list, direction } ->
+                    let
+                        length =
+                            list |> List.length
+                    in
+                    list
+                        |> Linear.at ( direction, length )
+                        |> List.Linear.access
+                        |> Expect.equal (Err (ExpectedIndexForLength length))
+                )
+            , Test.fuzz
+                (Fuzz.constant
+                    (\list direction -> { list = list, direction = direction })
+                    |> Fuzz.andMap (Fuzz.list Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
+                )
+                "negative index → Nothing"
+                (\{ list, direction } ->
+                    list
+                        |> Linear.at ( direction, -1 )
+                        |> List.Linear.access
+                        |> Expect.equal
+                            (Err (ExpectedIndexForLength (list |> List.length)))
+                )
+            ]
+        , describe "alter"
+            [ describe "at index in range"
+                [ test "Down"
+                    (\() ->
+                        [ 0, 1, 2, 3 ]
+                            |> Linear.at ( Down, 0 )
+                            |> List.Linear.alter (\n -> n + 100)
+                            |> Expect.equalLists [ 0, 1, 2, 103 ]
+                    )
+                , test "Up"
+                    (\() ->
+                        [ 0, 1, 2, 3 ]
+                            |> Linear.at ( Up, 2 )
+                            |> List.Linear.alter (\n -> n + 100)
+                            |> Expect.equalLists [ 0, 1, 102, 3 ]
+                    )
+                ]
+            , Test.fuzz
+                (Fuzz.constant
+                    (\list direction -> { list = list, direction = direction })
+                    |> Fuzz.andMap (Fuzz.list Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
+                )
+                "at index >= length → identity"
+                (\{ list, direction } ->
+                    list
+                        |> Linear.at ( direction, list |> List.length )
+                        |> List.Linear.alter (\n -> n + 100)
+                        |> Expect.equalLists list
+                )
+            , Test.fuzz
+                (Fuzz.constant
+                    (\list direction -> { list = list, direction = direction })
+                    |> Fuzz.andMap (Fuzz.list Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
+                )
+                "at index negative → identity"
+                (\{ list, direction } ->
+                    list
+                        |> Linear.at ( direction, -1 )
+                        |> List.Linear.alter (\n -> n + 100)
+                        |> Expect.equalLists list
                 )
             ]
         ]
@@ -99,259 +183,290 @@ listTests =
 arrayTests : Test
 arrayTests =
     describe "array"
-        [ describe "at"
-            [ test "FirstToLast at a valid index"
-                (\() ->
-                    Array.fromList [ 1, 2, 3, 4 ]
-                        |> Expect.all
-                            [ Array.Linear.at 0 FirstToLast >> Expect.equal (Just 1)
-                            , Array.Linear.at 1 FirstToLast >> Expect.equal (Just 2)
-                            , Array.Linear.at 2 FirstToLast >> Expect.equal (Just 3)
-                            , Array.Linear.at 3 FirstToLast >> Expect.equal (Just 4)
-                            ]
+        [ describe "access"
+            [ Test.fuzz
+                (Fuzz.constant
+                    (\array direction -> { array = array, direction = direction })
+                    |> Fuzz.andMap (Fuzz.array Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
                 )
-            , test "FirstToLast at a too high index"
-                (\() ->
-                    Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.at 100 FirstToLast
-                        |> Expect.equal Nothing
+                "at valid index"
+                (\{ array, direction } ->
+                    let
+                        toUp index =
+                            case direction of
+                                Up ->
+                                    index
+
+                                Down ->
+                                    (array |> Array.length) - 1 - index
+                    in
+                    array
+                        |> Array.map Ok
+                        |> Expect.equal
+                            (Array.initialize
+                                (array |> Array.length)
+                                (\i ->
+                                    array
+                                        |> Linear.at ( direction, i |> toUp )
+                                        |> Array.Linear.access
+                                )
+                            )
                 )
-            , test "LastToFirst at a too high index"
-                (\() ->
-                    Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.at 100 LastToFirst
-                        |> Expect.equal Nothing
+            , Test.fuzz
+                (Fuzz.constant
+                    (\array direction -> { array = array, direction = direction })
+                    |> Fuzz.andMap (Fuzz.array Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
                 )
-            , test "LastToFirst at a valid index"
-                (\() ->
-                    Array.fromList [ 1, 2, 3, 4 ]
-                        |> Expect.all
-                            [ Array.Linear.at 0 LastToFirst >> Expect.equal (Just 4)
-                            , Array.Linear.at 1 LastToFirst >> Expect.equal (Just 3)
-                            , Array.Linear.at 2 LastToFirst >> Expect.equal (Just 2)
-                            , Array.Linear.at 3 LastToFirst >> Expect.equal (Just 1)
-                            ]
+                "index >= length"
+                (\{ array, direction } ->
+                    let
+                        length =
+                            array |> Array.length
+                    in
+                    array
+                        |> Linear.at ( direction, length )
+                        |> Array.Linear.access
+                        |> Expect.equal
+                            (Err (ExpectedIndexForLength length))
+                )
+            , Test.fuzz
+                (Fuzz.constant
+                    (\array direction -> { array = array, direction = direction })
+                    |> Fuzz.andMap (Fuzz.array Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
+                )
+                "index negative"
+                (\{ array, direction } ->
+                    array
+                        |> Linear.at ( direction, -1 )
+                        |> Array.Linear.access
+                        |> Expect.equal
+                            (Err (ExpectedIndexForLength (array |> Array.length)))
                 )
             ]
         , describe "replaceAt"
-            [ test "valid index FirstToLast sets the value at an index to a new value"
+            [ test "valid index Up sets the value at an index to a new value"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.replaceAt 2 FirstToLast -3
+                        |> Linear.at ( Up, 2 )
+                        |> Array.Linear.replaceWith (\() -> -3)
                         |> Expect.equal
                             (Array.fromList [ 1, 2, -3, 4 ])
                 )
-            , test "negative index FirstToLast changes nothing"
+            , test "valid index Down sets the value at an index to a new value"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.replaceAt -1 FirstToLast 123
-                        |> Expect.equal
-                            (Array.fromList [ 1, 2, 3, 4 ])
-                )
-            , test "too high index FirstToLast changes nothing"
-                (\() ->
-                    Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.replaceAt 100 FirstToLast 123
-                        |> Expect.equal
-                            (Array.fromList [ 1, 2, 3, 4 ])
-                )
-            , test "valid index LastToFirst sets the value at an index to a new value"
-                (\() ->
-                    Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.replaceAt 1 LastToFirst -3
+                        |> Linear.at ( Down, 1 )
+                        |> Array.Linear.replaceWith (\() -> -3)
                         |> Expect.equal
                             (Array.fromList [ 1, 2, -3, 4 ])
                 )
-            , test "negative index LastToFirst changes nothing"
-                (\() ->
-                    Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.replaceAt -1 LastToFirst 123
-                        |> Expect.equal
-                            (Array.fromList [ 1, 2, 3, 4 ])
+            , Test.fuzz
+                (Fuzz.constant
+                    (\array direction -> { array = array, direction = direction })
+                    |> Fuzz.andMap (Fuzz.array Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
                 )
-            , test "too high index LastToFirst changes nothing"
-                (\() ->
-                    Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.replaceAt 100 LastToFirst 123
-                        |> Expect.equal
-                            (Array.fromList [ 1, 2, 3, 4 ])
+                "negative index changes nothing"
+                (\{ array, direction } ->
+                    array
+                        |> Linear.at ( direction, -1 )
+                        |> Array.Linear.replaceWith (\() -> 123)
+                        |> Expect.equal array
+                )
+            , Test.fuzz
+                (Fuzz.constant
+                    (\array direction -> { array = array, direction = direction })
+                    |> Fuzz.andMap (Fuzz.array Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
+                )
+                "index >= length changes nothing"
+                (\{ array, direction } ->
+                    array
+                        |> Linear.at
+                            ( direction, array |> Array.length )
+                        |> Array.Linear.replaceWith (\() -> 123)
+                        |> Expect.equal array
                 )
             ]
         , describe "insertAt"
-            [ describe "FirstToLast"
-                [ test "valid index"
+            [ describe "valid index"
+                [ test "Up"
                     (\() ->
                         Array.fromList [ 1, 2, 3, 4 ]
-                            |> Array.Linear.insertAt 2 FirstToLast 123
+                            |> Linear.at ( Up, 2 )
+                            |> Array.Linear.insert (\() -> 123)
                             |> Expect.equal
                                 (Array.fromList [ 1, 2, 123, 3, 4 ])
                     )
-                , test "length"
+                , test "Down"
                     (\() ->
                         Array.fromList [ 1, 2, 3, 4 ]
-                            |> Array.Linear.insertAt 4 FirstToLast 123
-                            |> Expect.equal
-                                (Array.fromList [ 1, 2, 3, 4, 123 ])
-                    )
-                , test "negative index → no change"
-                    (\() ->
-                        Array.fromList [ 1, 2, 3, 4 ]
-                            |> Array.Linear.insertAt -1 FirstToLast 123
-                            |> Expect.equal
-                                (Array.fromList [ 1, 2, 3, 4 ])
-                    )
-                , test "index > length → no change"
-                    (\() ->
-                        Array.fromList [ 1, 2, 3, 4 ]
-                            |> Array.Linear.insertAt 5 FirstToLast 123
-                            |> Expect.equal
-                                (Array.fromList [ 1, 2, 3, 4 ])
-                    )
-                ]
-            , describe "LastToFirst"
-                [ test "valid index"
-                    (\() ->
-                        Array.fromList [ 1, 2, 3, 4 ]
-                            |> Array.Linear.insertAt 2 LastToFirst 123
+                            |> Linear.at ( Down, 2 )
+                            |> Array.Linear.insert (\() -> 123)
                             |> Expect.equal
                                 (Array.fromList [ 1, 2, 123, 3, 4 ])
                     )
-                , test "length"
-                    (\() ->
-                        Array.fromList [ 1, 2, 3, 4 ]
-                            |> Array.Linear.insertAt 4 LastToFirst 123
-                            |> Expect.equal
-                                (Array.fromList [ 123, 1, 2, 3, 4 ])
-                    )
-                , test "negative index → no change"
-                    (\() ->
-                        Array.fromList [ 1, 2, 3, 4 ]
-                            |> Array.Linear.insertAt -1 LastToFirst 123
-                            |> Expect.equal
-                                (Array.fromList [ 1, 2, 3, 4 ])
-                    )
-                , test "index > length → no change"
-                    (\() ->
-                        Array.fromList [ 1, 2, 3, 4 ]
-                            |> Array.Linear.insertAt 5 LastToFirst 123
-                            |> Expect.equal
-                                (Array.fromList [ 1, 2, 3, 4 ])
-                    )
+                , describe "index = length"
+                    [ Test.fuzz
+                        (Fuzz.array Fuzz.int)
+                        "Up"
+                        (\array ->
+                            array
+                                |> Linear.at ( Up, array |> Array.length )
+                                |> Array.Linear.insert (\() -> 123)
+                                |> Expect.equal
+                                    (array |> Array.push 123)
+                        )
+                    , Test.fuzz
+                        (Fuzz.list Fuzz.int)
+                        "Down"
+                        (\list ->
+                            Array.fromList list
+                                |> Linear.at ( Down, list |> List.length )
+                                |> Array.Linear.insert (\() -> 123)
+                                |> Expect.equal
+                                    (123 :: list |> Array.fromList)
+                        )
+                    ]
                 ]
+            , Test.fuzz
+                (Fuzz.constant
+                    (\array direction -> { array = array, direction = direction })
+                    |> Fuzz.andMap (Fuzz.array Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
+                )
+                "negative index → no change"
+                (\{ array, direction } ->
+                    array
+                        |> Linear.at ( direction, -1 )
+                        |> Array.Linear.insert (\() -> 123)
+                        |> Expect.equal array
+                )
+            , Test.fuzz
+                (Fuzz.constant
+                    (\array direction -> { array = array, direction = direction })
+                    |> Fuzz.andMap (Fuzz.array Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
+                )
+                "index > length → no change"
+                (\{ array, direction } ->
+                    array
+                        |> Linear.at
+                            ( direction, (array |> Array.length) + 1 )
+                        |> Array.Linear.insert (\() -> 123)
+                        |> Expect.equal array
+                )
             ]
         , describe "squeezeInAt"
-            [ describe "FirstToLast"
-                [ test "valid index"
+            [ describe "valid index"
+                [ test "Up"
                     (\() ->
                         Array.fromList [ 'a', 'd', 'e' ]
-                            |> Array.Linear.squeezeInAt 1
-                                FirstToLast
-                                (Array.fromList [ 'b', 'c' ])
+                            |> Linear.at ( Up, 1 )
+                            |> Array.Linear.squeezeIn
+                                (\() -> Array.fromList [ 'b', 'c' ])
                             |> Expect.equal
                                 (Array.fromList [ 'a', 'b', 'c', 'd', 'e' ])
                     )
-                , test "negative index → no change"
+                , test "Down"
                     (\() ->
                         Array.fromList [ 'a', 'd', 'e' ]
-                            |> Array.Linear.squeezeInAt -1
-                                FirstToLast
-                                (Array.fromList [ 'b', 'c' ])
-                            |> Expect.equal
-                                (Array.fromList [ 'a', 'd', 'e' ])
-                    )
-                , test "index > length → no change"
-                    (\() ->
-                        Array.fromList [ 'a', 'd', 'e' ]
-                            |> Array.Linear.squeezeInAt 4
-                                FirstToLast
-                                (Array.fromList [ 'b', 'c' ])
-                            |> Expect.equal
-                                (Array.fromList [ 'a', 'd', 'e' ])
-                    )
-                ]
-            , describe "LastToFirst"
-                [ test "valid index"
-                    (\() ->
-                        Array.fromList [ 'a', 'd', 'e' ]
-                            |> Array.Linear.squeezeInAt 2
-                                LastToFirst
-                                (Array.fromList [ 'b', 'c' ])
+                            |> Linear.at ( Down, 2 )
+                            |> Array.Linear.squeezeIn
+                                (\() -> Array.fromList [ 'b', 'c' ])
                             |> Expect.equal
                                 (Array.fromList [ 'a', 'b', 'c', 'd', 'e' ])
                     )
-                , test "negative index → no change"
-                    (\() ->
-                        Array.fromList [ 'a', 'd', 'e' ]
-                            |> Array.Linear.squeezeInAt -1
-                                LastToFirst
-                                (Array.fromList [ 'b', 'c' ])
-                            |> Expect.equal
-                                (Array.fromList [ 'a', 'd', 'e' ])
-                    )
-                , test "index > length → no change"
-                    (\() ->
-                        Array.fromList [ 'a', 'd', 'e' ]
-                            |> Array.Linear.squeezeInAt 4
-                                LastToFirst
-                                (Array.fromList [ 'b', 'c' ])
-                            |> Expect.equal
-                                (Array.fromList [ 'a', 'd', 'e' ])
-                    )
                 ]
+            , Test.fuzz
+                (Fuzz.constant
+                    (\array direction -> { array = array, direction = direction })
+                    |> Fuzz.andMap (Fuzz.array Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
+                )
+                "negative index → no change"
+                (\{ array, direction } ->
+                    array
+                        |> Linear.at ( direction, -1 )
+                        |> Array.Linear.squeezeIn
+                            (\() -> Array.fromList [ -2, -1 ])
+                        |> Expect.equal array
+                )
+            , Test.fuzz
+                (Fuzz.constant
+                    (\array direction -> { array = array, direction = direction })
+                    |> Fuzz.andMap (Fuzz.array Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
+                )
+                "index > length → no change"
+                (\{ array, direction } ->
+                    array
+                        |> Linear.at
+                            ( direction, (array |> Array.length) + 1 )
+                        |> Array.Linear.squeezeIn
+                            (\() -> Array.fromList [ -2, -1 ])
+                        |> Expect.equal array
+                )
             ]
         , describe "removeAt"
-            [ test "removeAt FirstToLast removes the element at the index"
+            [ test "Up → removes the element at the index"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.removeAt 2 FirstToLast
+                        |> Linear.at ( Up, 2 )
+                        |> Array.Linear.remove
                         |> Expect.equal
                             (Array.fromList [ 1, 2, 4 ])
                 )
-            , test "removeAt LastToFirst removes the element at the index"
+            , test "Down → removes the element at the index"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.removeAt 1 LastToFirst
+                        |> Linear.at ( Down, 1 )
+                        |> Array.Linear.remove
                         |> Expect.equal
                             (Array.fromList [ 1, 2, 4 ])
                 )
             ]
         , describe "take"
-            [ test "take FirstToLast"
+            [ test "Up"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.take 3 FirstToLast
+                        |> Array.Linear.take ( Up, 3 )
                         |> Expect.equal
                             (Array.fromList [ 1, 2, 3 ])
                 )
-            , test "take LastToFirst"
+            , test "Down"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.take 3 LastToFirst
+                        |> Array.Linear.take ( Down, 3 )
                         |> Expect.equal
                             (Array.fromList [ 2, 3, 4 ])
                 )
             ]
         , describe "drop"
-            [ test "drop FirstToLast"
+            [ test "Up"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.drop 1 FirstToLast
+                        |> Array.Linear.drop ( Up, 1 )
                         |> Expect.equal
                             (Array.fromList [ 2, 3, 4 ])
                 )
-            , test "drop LastToFirst"
+            , test "Down"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.drop 1 LastToFirst
+                        |> Array.Linear.drop ( Down, 1 )
                         |> Expect.equal
                             (Array.fromList [ 1, 2, 3 ])
                 )
             ]
-        , describe "toChunksOf"
-            [ test "FirstToLast"
+        , describe "toChunks"
+            [ test "Up"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4, 5, 6, 7 ]
-                        |> Array.Linear.toChunksOf 3 FirstToLast
+                        |> Array.Linear.toChunks
+                            { length = 3, remainder = Up }
                         |> Expect.equal
                             { chunks =
                                 [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
@@ -360,10 +475,11 @@ arrayTests =
                             , remainder = Array.fromList [ 7 ]
                             }
                 )
-            , test "LastToFirst"
+            , test "Down"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4, 5, 6, 7 ]
-                        |> Array.Linear.toChunksOf 3 LastToFirst
+                        |> Array.Linear.toChunks
+                            { length = 3, remainder = Down }
                         |> Expect.equal
                             { remainder = Array.fromList [ 1 ]
                             , chunks =
@@ -373,45 +489,71 @@ arrayTests =
                             }
                 )
             ]
-        , describe "padToLength"
-            [ describe "FirstToLast"
-                [ test "length less than current"
-                    (\() ->
-                        Array.Linear.padToLength 3 FirstToLast 0 num1234
+        , let
+            lengthChange =
+                2
+          in
+          describe "padTo"
+            [ describe "lengthMinimum > current length"
+                [ Test.fuzz
+                    (Fuzz.array Fuzz.int)
+                    "Up"
+                    (\array ->
+                        array
+                            |> Array.Linear.padTo
+                                { lengthMinimum = (array |> Array.length) + lengthChange
+                                , pad = ( Up, \n -> Array.repeat n 0 )
+                                }
                             |> Expect.equal
-                                (Array.fromList [ 1, 2, 3 ])
+                                (Array.append array (Array.repeat lengthChange 0))
                     )
-                , test "length greater than current"
-                    (\() ->
-                        Array.Linear.padToLength 6 FirstToLast 0 num1234
+                , Test.fuzz
+                    (Fuzz.array Fuzz.int)
+                    "Down"
+                    (\array ->
+                        array
+                            |> Array.Linear.padTo
+                                { lengthMinimum = (array |> Array.length) + lengthChange
+                                , pad = ( Down, \n -> Array.repeat n 0 )
+                                }
                             |> Expect.equal
-                                (Array.fromList [ 1, 2, 3, 4, 0, 0 ])
-                    )
-                , test "negative length"
-                    (\() ->
-                        Array.Linear.padToLength -1 FirstToLast 0 num1234
-                            |> Expect.equal Array.empty
+                                (Array.append (Array.repeat lengthChange 0) array)
                     )
                 ]
-            , describe "LastToFirst"
-                [ test "length less than current"
-                    (\() ->
-                        Array.Linear.padToLength 3 LastToFirst 0 num1234
-                            |> Expect.equal
-                                (Array.fromList [ 2, 3, 4 ])
-                    )
-                , test "length greater than current"
-                    (\() ->
-                        Array.Linear.padToLength 6 LastToFirst 0 num1234
-                            |> Expect.equal
-                                (Array.fromList [ 0, 0, 1, 2, 3, 4 ])
-                    )
-                , test "negative length"
-                    (\() ->
-                        Array.Linear.padToLength -1 FirstToLast 0 num1234
-                            |> Expect.equal Array.empty
-                    )
-                ]
+            , Test.fuzz
+                (Fuzz.constant
+                    (\array direction -> { array = array, direction = direction })
+                    |> Fuzz.andMap (Fuzz.array Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
+                )
+                "lengthMinimum < current length  → identity"
+                (\{ array, direction } ->
+                    let
+                        lengthShortened =
+                            (array |> Array.length) - lengthChange
+                    in
+                    array
+                        |> Array.Linear.padTo
+                            { lengthMinimum = lengthShortened
+                            , pad = ( direction, \n -> Array.repeat n 0 )
+                            }
+                        |> Expect.equal array
+                )
+            , Test.fuzz
+                (Fuzz.constant
+                    (\array direction -> { array = array, direction = direction })
+                    |> Fuzz.andMap (Fuzz.array Fuzz.int)
+                    |> Fuzz.andMap directionLinearFuzz
+                )
+                "lengthMinimum negative → identity"
+                (\{ array, direction } ->
+                    array
+                        |> Array.Linear.padTo
+                            { lengthMinimum = -1
+                            , pad = ( direction, \n -> Array.repeat n 0 )
+                            }
+                        |> Expect.equal array
+                )
             ]
         ]
 
@@ -420,6 +562,9 @@ arrayTests =
 -- used
 
 
-num1234 : Array number_
-num1234 =
-    Array.fromList [ 1, 2, 3, 4 ]
+directionLinearFuzz : Fuzzer DirectionLinear
+directionLinearFuzz =
+    Fuzz.oneOf
+        [ Fuzz.constant Up
+        , Fuzz.constant Down
+        ]

@@ -1,8 +1,9 @@
 module List.Linear exposing
-    ( at
-    , take, drop
-    , toChunksOf
+    ( access
     , foldFrom
+    , alter
+    , take, drop
+    , toChunks
     )
 
 {-| `List` operations that can be applied in either direction.
@@ -10,107 +11,115 @@ module List.Linear exposing
 
 ## scan
 
-@docs at
-
-
-## alter
-
-
-### part
-
-@docs take, drop
-@docs toChunksOf
+@docs access
 
 
 ## transform
 
 @docs foldFrom
 
+@docs alter
+
+
+### part
+
+@docs take, drop
+@docs toChunks
+
 -}
 
-import LinearDirection exposing (LinearDirection(..))
+import Linear exposing (DirectionLinear(..), ExpectedIndexInRange(..))
 
 
 {-| Reduce a `List` in a direction.
 
-    import LinearDirection exposing (LinearDirection(..))
+    import Linear exposing (DirectionLinear(..))
 
     [ 'l', 'i', 'v', 'e' ]
-        |> List.Linear.foldFrom "" FirstToLast String.cons
+        |> List.Linear.foldFrom ( "", Up, String.cons )
     --> "evil"
 
     [ 'l', 'i', 'v', 'e' ]
-        |> List.Linear.foldFrom "" LastToFirst String.cons
+        |> List.Linear.foldFrom ( "", Down, String.cons )
     --> "live"
 
 -}
 foldFrom :
-    accumulationValue
-    -> LinearDirection
-    -> (element -> accumulationValue -> accumulationValue)
+    ( accumulationValue
+    , DirectionLinear
+    , element -> accumulationValue -> accumulationValue
+    )
     -> List element
     -> accumulationValue
-foldFrom initialAccumulationValue direction reduce =
+foldFrom ( accumulationValueInitial, direction, reduce ) =
     let
         fold =
             case direction of
-                FirstToLast ->
+                Up ->
                     List.foldl
 
-                LastToFirst ->
+                Down ->
                     List.foldr
     in
-    fold reduce initialAccumulationValue
+    fold reduce accumulationValueInitial
 
 
-{-| Split the `Array` into equal-sized chunks. The elements left over on one side are in `less`.
+{-| Split the `List` into equal-`length` `chunks`.
+The left over elements to one side are in `remainder`.
 
-    import LinearDirection exposing (LinearDirection(..))
+    import Linear exposing (DirectionLinear(..))
 
     [ 1, 2, 3, 4, 5, 6, 7 ]
-        |> List.Linear.toChunksOf 3 FirstToLast
+        |> List.Linear.toChunks
+            { length = 3, remainder = Up }
     --> { chunks = [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
     --> , remainder = [ 7 ]
     --> }
 
     [ 1, 2, 3, 4, 5, 6, 7 ]
-        |> List.Linear.toChunksOf 3 LastToFirst
+        |> List.Linear.toChunks
+            { length = 3, remainder = Down }
     --> { remainder = [ 1 ]
     --> , chunks = [ [ 2, 3, 4 ], [ 5, 6, 7 ] ]
     --> }
 
 -}
-toChunksOf :
-    Int
-    -> LinearDirection
+toChunks :
+    { length : Int
+    , remainder : DirectionLinear
+    }
     -> List element
     ->
         { chunks : List (List element)
         , remainder : List element
         }
-toChunksOf chunkLength direction listToChunk =
+toChunks chunking listToChunk =
     let
-        toChunksFirstToLast list =
-            if (list |> List.length) >= chunkLength then
-                let
-                    after =
-                        list
-                            |> List.drop chunkLength
-                            |> toChunksFirstToLast
-                in
-                { chunks =
-                    (list |> List.take chunkLength)
-                        :: after.chunks
-                , remainder = after.remainder
-                }
+        toChunksUp () =
+            \list ->
+                if (list |> List.length) >= chunking.length then
+                    let
+                        after =
+                            list
+                                |> List.drop chunking.length
+                                |> toChunksUp ()
+                    in
+                    { chunks =
+                        (list |> List.take chunking.length)
+                            :: after.chunks
+                    , remainder = after.remainder
+                    }
 
-            else
-                { chunks = [], remainder = list }
+                else
+                    { chunks = [], remainder = list }
+
+        direction =
+            chunking.remainder
 
         { chunks, remainder } =
             listToChunk
                 |> order direction
-                |> toChunksFirstToLast
+                |> toChunksUp ()
     in
     { chunks =
         chunks
@@ -122,24 +131,24 @@ toChunksOf chunkLength direction listToChunk =
 
 {-| Only use a number of elements from one side.
 
-    import LinearDirection exposing (LinearDirection(..))
+    import Linear exposing (DirectionLinear(..))
 
     [ 1, 2, 3, 4 ]
-        |> List.Linear.take 2 FirstToLast
+        |> List.Linear.take ( Up,2 )
     --> [ 1, 2 ]
 
     [ 1, 2, 3, 4 ]
-        |> List.Linear.take 2 LastToFirst
+        |> List.Linear.take ( Down, 2 )
     --> [ 3, 4 ]
 
 -}
-take : Int -> LinearDirection -> List element -> List element
-take amount direction =
+take : ( DirectionLinear, Int ) -> List element -> List element
+take ( direction, amount ) =
     case direction of
-        FirstToLast ->
+        Up ->
             List.take amount
 
-        LastToFirst ->
+        Down ->
             \list ->
                 list
                     |> List.drop ((list |> List.length) - amount)
@@ -147,89 +156,172 @@ take amount direction =
 
 {-| Remove a number of elements from one side.
 
-    import LinearDirection exposing (LinearDirection(..))
+    import Linear exposing (DirectionLinear(..))
 
-    tail =
-        List.Linear.drop FirstToLast 1
+    removeFirst =
+        List.Linear.drop ( Up, 1 )
 
     removeLast =
-        List.Linear.drop LastToFirst 1
+        List.Linear.drop ( Down, 1 )
 
 -}
-drop : LinearDirection -> Int -> List element -> List element
-drop direction amount =
+drop : ( DirectionLinear, Int ) -> List element -> List element
+drop ( direction, amount ) =
     case direction of
-        FirstToLast ->
+        Up ->
             List.drop amount
 
-        LastToFirst ->
+        Down ->
             \list ->
                 list
                     |> List.take ((list |> List.length) - amount)
 
 
-{-| Returns `Just` the element at the given index in the list in a direction:
+{-| `Just` the element at the given index in the list in a [direction](Linear#DirectionLinear):
 
-    import LinearDirection exposing (LinearDirection(..))
-
-    [ 0, 1, 2, 3 ]
-        |> List.Linear.at 0 LastToFirst
-    --> Just 3
+    import Linear exposing (DirectionLinear(..))
 
     [ 0, 1, 2, 3 ]
-        |> List.Linear.at 2 FirstToLast
-    --> Just 2
-
-Returns `Nothing` if the index is out of range:
-
-    import LinearDirection exposing (LinearDirection(..))
+        |> Linear.at ( Down, 0 )
+        |> List.Linear.access
+    --> Ok 3
 
     [ 0, 1, 2, 3 ]
-        |> List.Linear.at 4 FirstToLast
-    --> Nothing
+        |> Linear.at ( Up, 2 )
+        |> List.Linear.access
+    --> Ok 2
+
+`Err` if the index is out of range:
+
+    import Linear exposing (DirectionLinear(..), ExpectedIndexInRange(..))
 
     [ 0, 1, 2, 3 ]
-        |> List.Linear.at -1 FirstToLast
-    --> Nothing
+        |> Linear.at ( Up, 5 )
+        |> List.Linear.access
+    --> Err (ExpectedIndexForLength 4)
 
-If you're using this operation often, consider using an `Array` instead of a `List`
+    [ 0, 1, 2, 3 ]
+        |> Linear.at ( Up, -1 )
+        |> List.Linear.access
+    --> Err (ExpectedIndexForLength 4)
+
+If you're using [`at`](Linear#at)-operations often, consider using an `Array` instead of a `List`
 to get `O(log n)` vs. `O(n)` random access performance.
 
 -}
-at : Int -> LinearDirection -> List element -> Maybe element
-at index direction =
-    if index >= 0 then
-        (case direction of
-            FirstToLast ->
-                List.drop index
+access :
+    { structure : List element
+    , location : ( DirectionLinear, Int )
+    }
+    -> Result ExpectedIndexInRange element
+access =
+    \list ->
+        let
+            ( direction, index ) =
+                list.location
 
-            LastToFirst ->
-                take (index + 1) LastToFirst
-        )
-            >> List.head
+            wholeLength =
+                list.structure |> List.length
 
-    else
-        \_ -> Nothing
+            beforeLength =
+                case direction of
+                    Up ->
+                        index
+
+                    Down ->
+                        wholeLength - 1 - index
+        in
+        if beforeLength >= 0 then
+            case list.structure |> List.drop beforeLength of
+                found :: _ ->
+                    found |> Ok
+
+                [] ->
+                    ExpectedIndexForLength wholeLength |> Err
+
+        else
+            ExpectedIndexForLength wholeLength |> Err
 
 
-{-| Keep the order if `FirstToLast`, reverse if `LastToFirst`.
+{-| Alter the element at the given index in a [direction](Linear#DirectionLinear):
 
-    import LinearDirection exposing (LinearDirection(..))
+    import Linear exposing (DirectionLinear(..))
 
-    [ 1, 2, 3 ] |> List.order LastToFirst
+    [ 1, 2, 2 ]
+        |> Linear.at ( Down, 0 )
+        |> List.Linear.alter (\n -> n + 1)
+    --> [ 1, 2, 3 ]
+
+Do nothing if the index is out of range:
+
+    import Linear exposing (DirectionLinear(..))
+
+    [ 0, 1, 2, 3 ]
+        |> Linear.at ( Up, 4 )
+        |> List.Linear.alter (\_ -> 123)
+    --> [ 0, 1, 2, 3 ]
+
+    [ 0, 1, 2, 3 ]
+        |> Linear.at ( Up, -1 )
+        |> List.Linear.alter (\_ -> 123)
+    --> [ 0, 1, 2, 3 ]
+
+If you're using at-operations often, consider using an `Array` instead of a `List`
+to get `O(log n)` vs. `O(n)` random access performance.
+
+-}
+alter :
+    (element -> element)
+    ->
+        { structure : List element
+        , location : ( DirectionLinear, Int )
+        }
+    -> List element
+alter elementAlter =
+    \list ->
+        let
+            ( direction, indexInDirection ) =
+                list.location
+
+            indexUp =
+                case direction of
+                    Up ->
+                        indexInDirection
+
+                    Down ->
+                        (list.structure |> List.length) - 1 - indexInDirection
+        in
+        if indexUp >= 0 then
+            case list.structure |> List.drop indexUp of
+                [] ->
+                    list.structure
+
+                elementAtIndex :: beyondIndex ->
+                    (list.structure |> List.take indexUp)
+                        ++ ((elementAtIndex |> elementAlter) :: beyondIndex)
+
+        else
+            list.structure
+
+
+{-| Keep the order if `Up`, reverse if `Down`.
+
+    import Linear exposing (DirectionLinear(..))
+
+    [ 1, 2, 3 ] |> List.order Down
     --→ [ 3, 2, 1 ]
 
-    [ 1, 2, 3 ] |> List.order FirstToLast
+    [ 1, 2, 3 ] |> List.order Up
     --→ [ 1, 2, 3 ]
 
 **Shouldn't be exposed**
 
 -}
-order : LinearDirection -> List element -> List element
+order : DirectionLinear -> List element -> List element
 order direction =
     case direction of
-        FirstToLast ->
+        Up ->
             identity
 
-        LastToFirst ->
+        Down ->
             List.reverse

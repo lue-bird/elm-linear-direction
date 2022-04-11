@@ -1,9 +1,12 @@
 {
   "root": "../src",
   "tests": [
-    "LinearDirection",
+    "Linear",
     "List.Linear",
     "Array.Linear",
-    "Order"
+    "Set.Linear",
+    "Dict.Linear",
+    "Order",
+    "./README.md"
   ]
 }

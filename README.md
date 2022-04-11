@@ -12,55 +12,106 @@ Q: Can direction be better expressed than in
 A: Use the **direction as an argument**:
 
 ```elm
-import LinearDirection exposing (LinearDirection(..))
+import Linear exposing (DirectionLinear(..))
 import List.Linear
 import Array exposing (Array)
 import Array.Linear
 
 [ 'l', 'i', 'v', 'e' ]
-    |> List.Linear.foldFrom "" FirstToLast String.cons
+    |> List.Linear.foldFrom ( "", Up, String.cons )
 --> "evil"
 
 [ 'l', 'i', 'v', 'e' ]
-    |> List.Linear.foldFrom "" LastToFirst String.cons
+    |> List.Linear.foldFrom ( "", Down, String.cons )
 --> "live"
 
-last : Array element -> Maybe element
+last : Array element -> Err { expectedArrayFilled : () } element
 last =
-    Array.Linear.at 0 LastToFirst
+    \array ->
+        array
+            |> Linear.at ( Down, 0 )
+            |> Array.Linear.access
+            |> Result.mapError
+                (\_ -> { expectedArrayFilled = () })
 ```
 
   - → a less cluttered API, e.g.
       - `foldFrom` instead of `foldr`, `foldl`
-      - `toChunksOf` instead of [`chunksFromLeft`/-`Right`](https://package.elm-lang.org/packages/elm-community/list-split/latest/List-Split)
+      - `toChunks` instead of [`chunksFromLeft`/-`Right`](https://package.elm-lang.org/packages/elm-community/list-split/latest/List-Split)
 
   - → deal with both directions at once
 
     ```elm
-    import LinearDirection exposing (LinearDirection)
+    import Linear exposing (DirectionLinear)
     import Array exposing (Array)
     import Array.Linear
 
-    alterAt :
-        Int -> LinearDirection -> (a -> a) -> Array a -> Array a
-    alterAt index direction alter =
+    alter :
+        (element -> element)
+        -> { structure : Array element
+           , location : ( DirectionLinear, Int )
+           }
+        -> Array a
+    alter alter =
         \array ->
             array
-                |> Array.Linear.replaceAt index direction
-                    (array
-                        |> Array.Linear.at index direction
-                        |> alter
+                |> Array.Linear.replaceWith
+                    (\() ->
+                        array
+                            |> Array.Linear.access
+                            |> alter
                     )
     ```
 
   - → direction is always explicit
 
-## this is being used in
+## `Order`
 
-- [`emptiness-typed`](https://dark.elm.dmy.fr/packages/lue-bird/elm-emptiness-typed/latest/)
-- [`typesafe-array`](https://dark.elm.dmy.fr/packages/lue-bird/elm-typesafe-array/latest/)
-- [`rosetree-path`](https://dark.elm.dmy.fr/packages/lue-bird/elm-rosetree-path/latest/)
+Build `compare` operations for basic types, records, `type` unions.
+All without `comparable`, `number`, ...
+
+```elm
+import Order exposing (Ordering)
+
+type User
+    = User
+        { firstName : String
+        , lastName : String
+        , age : Int
+        }
+
+userOrder : Ordering User
+userOrder =
+    Order.by
+        ( \(User user) -> user
+        , Order.downOnTie
+            [ Order.by ( .lastName, Order.string )
+            , Order.by ( .firstName, Order.string )
+            , Order.by ( .age, Order.int )
+            ]
+        )
+
+[ User { firstName = "Andy", lastName = "Baldwin", age = 90 }
+, User { firstName = "Bert", lastName = "Anderson", age = 23 }
+, User { firstName = "Alec", lastName = "Anderson", age = 8 }
+, User { firstName = "Alec", lastName = "Anderson", age = 100 }
+]
+    |> List.sortWith userOrder
+--> [ { firstName = "Alec", lastName = "Anderson", age = 8 }
+--> , { firstName = "Alec", lastName = "Anderson", age = 100 }
+--> , { firstName = "Bert", lastName = "Anderson", age = 23 }
+--> , { firstName = "Andy", lastName = "Baldwin", age = 90 }
+--> ]
+```
+
+[↑ other examples](https://github.com/lue-bird/elm-linear-direction/blob/master/example/src/Card.elm)
+
+## where `elm-linear-direction` is already being used
+
+  - [`emptiness-typed`](https://dark.elm.dmy.fr/packages/lue-bird/elm-emptiness-typed/latest/)
+  - [`typesafe-array`](https://dark.elm.dmy.fr/packages/lue-bird/elm-typesafe-array/latest/)
+  - [`rosetree-path`](https://dark.elm.dmy.fr/packages/lue-bird/elm-rosetree-path/latest/)
 
 ## suggestions?
 
-→ See [contributing.md](https://github.com/lue-bird/elm-linear-direction/blob/master/contributing.md)
+→ [contribute](https://github.com/lue-bird/elm-linear-direction/blob/master/contributing.md)
