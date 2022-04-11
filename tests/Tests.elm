@@ -238,8 +238,8 @@ arrayTests =
                             (Err (ExpectedIndexForLength (array |> Array.length)))
                 )
             ]
-        , describe "replaceAt"
-            [ test "valid index Up sets the value at an index to a new value"
+        , describe "replaceWith"
+            [ test "valid index Up → sets the value at an index to a new value"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
                         |> Linear.at ( Up, 2 )
@@ -247,7 +247,7 @@ arrayTests =
                         |> Expect.equal
                             (Array.fromList [ 1, 2, -3, 4 ])
                 )
-            , test "valid index Down sets the value at an index to a new value"
+            , test "valid index Down → sets the value at an index to a new value"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
                         |> Linear.at ( Down, 1 )
@@ -261,7 +261,7 @@ arrayTests =
                     |> Fuzz.andMap (Fuzz.array Fuzz.int)
                     |> Fuzz.andMap directionLinearFuzz
                 )
-                "negative index changes nothing"
+                "negative index → changes nothing"
                 (\{ array, direction } ->
                     array
                         |> Linear.at ( direction, -1 )
@@ -283,8 +283,8 @@ arrayTests =
                         |> Expect.equal array
                 )
             ]
-        , describe "insertAt"
-            [ describe "valid index"
+        , describe "insert"
+            [ describe "at valid index"
                 [ test "Up"
                     (\() ->
                         Array.fromList [ 1, 2, 3, 4 ]
@@ -301,7 +301,7 @@ arrayTests =
                             |> Expect.equal
                                 (Array.fromList [ 1, 2, 123, 3, 4 ])
                     )
-                , describe "index = length"
+                , describe "at index = length"
                     [ Test.fuzz
                         (Fuzz.array Fuzz.int)
                         "Up"

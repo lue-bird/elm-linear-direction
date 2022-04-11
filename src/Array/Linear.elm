@@ -1,11 +1,11 @@
 module Array.Linear exposing
     ( at
     , foldFrom
-    , remove, insert
+    , remove, replaceWith, insert
     , padTo
     , take, drop, toChunks
     , squeezeIn
-    , access, replaceWith
+    , access
     )
 
 {-| `Array` operations that can be applied in either direction.
@@ -23,7 +23,7 @@ module Array.Linear exposing
 
 ### alter
 
-@docs remove, insert
+@docs remove, replaceWith, insert
 @docs padTo
 
 
@@ -39,7 +39,7 @@ module Array.Linear exposing
 
 ## deprecated
 
-@docs access, replaceWith
+@docs access
 
 -}
 
@@ -383,15 +383,7 @@ at ( direction, index ) =
             ExpectedIndexForLength length |> Err
 
 
-{-|
-
-  - @deprecated
-
-    Removed with the next major version
-
-    → call [`Array.Linear.alter (\_ -> replacement)`](#alter)
-
-Set the element at an index in a direction.
+{-| Set the element at an index in a direction.
 
     import Linear exposing (DirectionLinear(..))
     import Array
@@ -406,7 +398,7 @@ Set the element at an index in a direction.
         |> Array.Linear.replaceWith (\() -> "feel")
     --> Array.fromList [ "I", "feel", "ok" ]
 
-If the index is out of range, the array is unaltered.
+If the index is out of range, the `Array` is unaltered.
 
     import Linear exposing (DirectionLinear(..))
     import Array
@@ -426,20 +418,28 @@ replaceWith :
     -> Array element
 replaceWith elementReplacement =
     \array ->
-        array.structure
-            |> Array.set
-                (let
+        let
+            lastIndex =
+                (array.structure |> Array.length) - 1
+
+            indexUp =
+                let
                     ( direction, index ) =
                         array.location
-                 in
-                 case direction of
+                in
+                case direction of
                     Up ->
                         index
 
                     Down ->
-                        (array.structure |> Array.length) - 1 - index
-                )
-                (elementReplacement ())
+                        lastIndex - index
+        in
+        if indexUp >= 0 && indexUp <= lastIndex then
+            array.structure
+                |> Array.set indexUp (elementReplacement ())
+
+        else
+            array.structure
 
 
 {-| A given number of elements from one side.

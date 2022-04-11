@@ -3,8 +3,6 @@
   - switch to `bounded-nat` for index & length
   - in `Array.Linear`
       - remove `access` in favor of `at`
-      - remove `replaceWith replacement`
-        in favor of `alter (\_ -> replacement)`
   - in `List.Linear`
       - remove `access` in favor of `at`
 
@@ -15,8 +13,6 @@
   - in `Array.Linear`
       - added `at`
       - deprecated `access` in favor of `at`
-      - deprecated `replaceWith replacement`
-        in favor of `alter (\_ -> replacement)`
   - in `List.Linear`
       - added `at`
       - deprecated `access` in favor of `at`
