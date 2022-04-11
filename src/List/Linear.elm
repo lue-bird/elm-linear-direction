@@ -1,9 +1,10 @@
 module List.Linear exposing
-    ( access
+    ( at
     , foldFrom
     , alter
     , take, drop
     , toChunks
+    , access
     )
 
 {-| `List` operations that can be applied in either direction.
@@ -11,7 +12,7 @@ module List.Linear exposing
 
 ## scan
 
-@docs access
+@docs at
 
 
 ## transform
@@ -25,6 +26,11 @@ module List.Linear exposing
 
 @docs take, drop
 @docs toChunks
+
+
+## deprecated
+
+@docs access
 
 -}
 
@@ -193,7 +199,15 @@ drop ( direction, amount ) =
                     |> List.take ((list |> List.length) - amount)
 
 
-{-| `Just` the element at the given index in the list in a [direction](Linear#DirectionLinear):
+{-|
+
+  - @deprecated
+
+    Removed with the next major version
+
+    → call [`Array.Linear.at`](#at) directly
+
+`Just` the element at the given index in the list in a [direction](Linear#DirectionLinear):
 
     import Linear exposing (DirectionLinear(..))
 
@@ -232,12 +246,46 @@ access :
     -> Result ExpectedIndexInRange element
 access =
     \list ->
-        let
-            ( direction, index ) =
-                list.location
+        list.structure |> at list.location
 
+
+{-| `Just` the element at the given index in the list in a [direction](Linear#DirectionLinear):
+
+    import Linear exposing (DirectionLinear(..))
+
+    [ 0, 1, 2, 3 ]
+        |> List.Linear.at ( Down, 0 )
+    --> Ok 3
+
+    [ 0, 1, 2, 3 ]
+        |> List.Linear.at ( Up, 2 )
+    --> Ok 2
+
+`Err` if the index is out of range:
+
+    import Linear exposing (DirectionLinear(..), ExpectedIndexInRange(..))
+
+    [ 0, 1, 2, 3 ]
+        |> List.Linear.at ( Up, 5 )
+    --> Err (ExpectedIndexForLength 4)
+
+    [ 0, 1, 2, 3 ]
+        |> List.Linear.at ( Up, -1 )
+    --> Err (ExpectedIndexForLength 4)
+
+If you're using at-operations often, consider using an `Array` instead of a `List`
+to get `O(log n)` vs. `O(n)` random access performance.
+
+-}
+at :
+    ( DirectionLinear, Int )
+    -> List element
+    -> Result ExpectedIndexInRange element
+at ( direction, index ) =
+    \list ->
+        let
             wholeLength =
-                list.structure |> List.length
+                list |> List.length
 
             beforeLength =
                 case direction of
@@ -248,7 +296,7 @@ access =
                         wholeLength - 1 - index
         in
         if beforeLength >= 0 then
-            case list.structure |> List.drop beforeLength of
+            case list |> List.drop beforeLength of
                 found :: _ ->
                     found |> Ok
 
