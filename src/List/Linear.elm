@@ -129,7 +129,7 @@ toChunks chunking listToChunk =
     }
 
 
-{-| Only use a number of elements from one side.
+{-| A given number of elements from one side.
 
     import Linear exposing (DirectionLinear(..))
 
@@ -140,6 +140,14 @@ toChunks chunking listToChunk =
     [ 1, 2, 3, 4 ]
         |> List.Linear.take ( Down, 2 )
     --> [ 3, 4 ]
+
+`[]` if the amount of elements to take is negative.
+
+    import Linear exposing (DirectionLinear(..))
+
+    [ 1, 2, 3 ]
+        |> List.Linear.take ( Up, -100 )
+    --> []
 
 -}
 take : ( DirectionLinear, Int ) -> List element -> List element
@@ -154,7 +162,7 @@ take ( direction, amount ) =
                     |> List.drop ((list |> List.length) - amount)
 
 
-{-| Remove a number of elements from one side.
+{-| Remove a given number of elements from one side.
 
     import Linear exposing (DirectionLinear(..))
 
@@ -163,6 +171,14 @@ take ( direction, amount ) =
 
     removeLast =
         List.Linear.drop ( Down, 1 )
+
+Nothing is dropped if the amount of elements to drop is negative.
+
+    import Linear exposing (DirectionLinear(..))
+
+    [ 1, 2, 3 ]
+        |> List.Linear.drop ( Up, -1 )
+    --> [ 1, 2, 3 ]
 
 -}
 drop : ( DirectionLinear, Int ) -> List element -> List element
