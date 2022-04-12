@@ -25,13 +25,9 @@ import Array.Linear
     |> List.Linear.foldFrom ( "", Down, String.cons )
 --> "live"
 
-last : Array element -> Err { expectedArrayFilled : () } element
-last =
-    \array ->
-        array
-            |> Array.Linear.at ( Down, 0 )
-            |> Result.mapError
-                (\_ -> { expectedArrayFilled = () })
+Array.fromList [ 'e', 'v', 'i', 'l' ]
+    |> Array.Linear.element ( Down, 0 )
+--> Ok 'l'
 ```
 
   - → a less cluttered API, e.g.
@@ -46,18 +42,17 @@ last =
     import Array.Linear
 
     alter :
-        (element -> element)
-        -> { structure : Array element
-           , location : ( DirectionLinear, Int )
-           }
-        -> Array a
-    alter alter =
+        ( ( DirectionLinear, Int ), element -> element )
+        -> Array element
+        -> Array element
+    alter ( location, alter ) =
         \array ->
             array
-                |> Array.Linear.replaceWith
-                    (\() ->
-                        array.structure
-                            |> Array.Linear.at array.location
+                |> Array.Linear.elementReplace
+                    ( location
+                    , \() ->
+                        array
+                            |> Array.Linear.element location
                             |> alter
                     )
     ```
