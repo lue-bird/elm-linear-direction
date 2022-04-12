@@ -95,7 +95,7 @@ listTests =
                                 |> reverseIfLastToFirst
                                 |> List.map
                                     (\i ->
-                                        list |> List.Linear.at ( direction, i )
+                                        list |> List.Linear.element ( direction, i )
                                     )
                             )
                 )
@@ -112,7 +112,7 @@ listTests =
                             list |> List.length
                     in
                     list
-                        |> List.Linear.at ( direction, length )
+                        |> List.Linear.element ( direction, length )
                         |> Expect.equal (Err (ExpectedIndexForLength length))
                 )
             , Test.fuzz
@@ -124,7 +124,7 @@ listTests =
                 "negative index → Nothing"
                 (\{ list, direction } ->
                     list
-                        |> List.Linear.at ( direction, -1 )
+                        |> List.Linear.element ( direction, -1 )
                         |> Expect.equal
                             (Err (ExpectedIndexForLength (list |> List.length)))
                 )
@@ -134,15 +134,15 @@ listTests =
                 [ test "Down"
                     (\() ->
                         [ 0, 1, 2, 3 ]
-                            |> Linear.at ( Down, 0 )
-                            |> List.Linear.alter (\n -> n + 100)
+                            |> List.Linear.elementAlter
+                                ( ( Down, 0 ), \n -> n + 100 )
                             |> Expect.equalLists [ 0, 1, 2, 103 ]
                     )
                 , test "Up"
                     (\() ->
                         [ 0, 1, 2, 3 ]
-                            |> Linear.at ( Up, 2 )
-                            |> List.Linear.alter (\n -> n + 100)
+                            |> List.Linear.elementAlter
+                                ( ( Up, 2 ), \n -> n + 100 )
                             |> Expect.equalLists [ 0, 1, 102, 3 ]
                     )
                 ]
@@ -155,8 +155,8 @@ listTests =
                 "at index >= length → identity"
                 (\{ list, direction } ->
                     list
-                        |> Linear.at ( direction, list |> List.length )
-                        |> List.Linear.alter (\n -> n + 100)
+                        |> List.Linear.elementAlter
+                            ( ( direction, list |> List.length ), \n -> n + 100 )
                         |> Expect.equalLists list
                 )
             , Test.fuzz
@@ -168,8 +168,8 @@ listTests =
                 "at index negative → identity"
                 (\{ list, direction } ->
                     list
-                        |> Linear.at ( direction, -1 )
-                        |> List.Linear.alter (\n -> n + 100)
+                        |> List.Linear.elementAlter
+                            ( ( direction, -1 ), \n -> n + 100 )
                         |> Expect.equalLists list
                 )
             ]
@@ -189,21 +189,24 @@ arrayTests =
                 "valid index"
                 (\{ array, direction } ->
                     let
+                        length =
+                            array |> Array.length
+
                         toUp index =
                             case direction of
                                 Up ->
                                     index
 
                                 Down ->
-                                    (array |> Array.length) - 1 - index
+                                    length - 1 - index
                     in
                     array
                         |> Array.map Ok
                         |> Expect.equal
                             (Array.initialize
-                                (array |> Array.length)
+                                length
                                 (\i ->
-                                    array |> Array.Linear.at ( direction, i |> toUp )
+                                    array |> Array.Linear.element ( direction, i |> toUp )
                                 )
                             )
                 )
@@ -220,7 +223,7 @@ arrayTests =
                             array |> Array.length
                     in
                     array
-                        |> Array.Linear.at ( direction, length )
+                        |> Array.Linear.element ( direction, length )
                         |> Expect.equal
                             (Err (ExpectedIndexForLength length))
                 )
@@ -233,7 +236,7 @@ arrayTests =
                 "index negative"
                 (\{ array, direction } ->
                     array
-                        |> Array.Linear.at ( direction, -1 )
+                        |> Array.Linear.element ( direction, -1 )
                         |> Expect.equal
                             (Err (ExpectedIndexForLength (array |> Array.length)))
                 )
@@ -242,16 +245,16 @@ arrayTests =
             [ test "valid index Up → sets the value at an index to a new value"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
-                        |> Linear.at ( Up, 2 )
-                        |> Array.Linear.replaceWith (\() -> -3)
+                        |> Array.Linear.elementReplace
+                            ( ( Up, 2 ), \() -> -3 )
                         |> Expect.equal
                             (Array.fromList [ 1, 2, -3, 4 ])
                 )
             , test "valid index Down → sets the value at an index to a new value"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
-                        |> Linear.at ( Down, 1 )
-                        |> Array.Linear.replaceWith (\() -> -3)
+                        |> Array.Linear.elementReplace
+                            ( ( Down, 1 ), \() -> -3 )
                         |> Expect.equal
                             (Array.fromList [ 1, 2, -3, 4 ])
                 )
@@ -264,8 +267,8 @@ arrayTests =
                 "negative index → changes nothing"
                 (\{ array, direction } ->
                     array
-                        |> Linear.at ( direction, -1 )
-                        |> Array.Linear.replaceWith (\() -> 123)
+                        |> Array.Linear.elementReplace
+                            ( ( direction, -1 ), \() -> 123 )
                         |> Expect.equal array
                 )
             , Test.fuzz
@@ -277,9 +280,8 @@ arrayTests =
                 "index >= length changes nothing"
                 (\{ array, direction } ->
                     array
-                        |> Linear.at
-                            ( direction, array |> Array.length )
-                        |> Array.Linear.replaceWith (\() -> 123)
+                        |> Array.Linear.elementReplace
+                            ( ( direction, array |> Array.length ), \() -> 123 )
                         |> Expect.equal array
                 )
             ]
@@ -288,16 +290,16 @@ arrayTests =
                 [ test "Up"
                     (\() ->
                         Array.fromList [ 1, 2, 3, 4 ]
-                            |> Linear.at ( Up, 2 )
-                            |> Array.Linear.insert (\() -> 123)
+                            |> Array.Linear.insert
+                                ( ( Up, 2 ), \() -> 123 )
                             |> Expect.equal
                                 (Array.fromList [ 1, 2, 123, 3, 4 ])
                     )
                 , test "Down"
                     (\() ->
                         Array.fromList [ 1, 2, 3, 4 ]
-                            |> Linear.at ( Down, 2 )
-                            |> Array.Linear.insert (\() -> 123)
+                            |> Array.Linear.insert
+                                ( ( Down, 2 ), \() -> 123 )
                             |> Expect.equal
                                 (Array.fromList [ 1, 2, 123, 3, 4 ])
                     )
@@ -307,8 +309,8 @@ arrayTests =
                         "Up"
                         (\array ->
                             array
-                                |> Linear.at ( Up, array |> Array.length )
-                                |> Array.Linear.insert (\() -> 123)
+                                |> Array.Linear.insert
+                                    ( ( Up, array |> Array.length ), \() -> 123 )
                                 |> Expect.equal
                                     (array |> Array.push 123)
                         )
@@ -317,8 +319,8 @@ arrayTests =
                         "Down"
                         (\list ->
                             Array.fromList list
-                                |> Linear.at ( Down, list |> List.length )
-                                |> Array.Linear.insert (\() -> 123)
+                                |> Array.Linear.insert
+                                    ( ( Down, list |> List.length ), \() -> 123 )
                                 |> Expect.equal
                                     (123 :: list |> Array.fromList)
                         )
@@ -333,8 +335,8 @@ arrayTests =
                 "negative index → no change"
                 (\{ array, direction } ->
                     array
-                        |> Linear.at ( direction, -1 )
-                        |> Array.Linear.insert (\() -> 123)
+                        |> Array.Linear.insert
+                            ( ( direction, -1 ), \() -> 123 )
                         |> Expect.equal array
                 )
             , Test.fuzz
@@ -346,9 +348,8 @@ arrayTests =
                 "index > length → no change"
                 (\{ array, direction } ->
                     array
-                        |> Linear.at
-                            ( direction, (array |> Array.length) + 1 )
-                        |> Array.Linear.insert (\() -> 123)
+                        |> Array.Linear.insert
+                            ( ( direction, (array |> Array.length) + 1 ), \() -> 123 )
                         |> Expect.equal array
                 )
             ]
@@ -357,18 +358,16 @@ arrayTests =
                 [ test "Up"
                     (\() ->
                         Array.fromList [ 'a', 'd', 'e' ]
-                            |> Linear.at ( Up, 1 )
                             |> Array.Linear.squeezeIn
-                                (\() -> Array.fromList [ 'b', 'c' ])
+                                ( ( Up, 1 ), \() -> Array.fromList [ 'b', 'c' ] )
                             |> Expect.equal
                                 (Array.fromList [ 'a', 'b', 'c', 'd', 'e' ])
                     )
                 , test "Down"
                     (\() ->
                         Array.fromList [ 'a', 'd', 'e' ]
-                            |> Linear.at ( Down, 2 )
                             |> Array.Linear.squeezeIn
-                                (\() -> Array.fromList [ 'b', 'c' ])
+                                ( ( Down, 2 ), \() -> Array.fromList [ 'b', 'c' ] )
                             |> Expect.equal
                                 (Array.fromList [ 'a', 'b', 'c', 'd', 'e' ])
                     )
@@ -382,9 +381,8 @@ arrayTests =
                 "negative index → no change"
                 (\{ array, direction } ->
                     array
-                        |> Linear.at ( direction, -1 )
                         |> Array.Linear.squeezeIn
-                            (\() -> Array.fromList [ -2, -1 ])
+                            ( ( direction, -1 ), \() -> Array.fromList [ -2, -1 ] )
                         |> Expect.equal array
                 )
             , Test.fuzz
@@ -396,10 +394,8 @@ arrayTests =
                 "index > length → no change"
                 (\{ array, direction } ->
                     array
-                        |> Linear.at
-                            ( direction, (array |> Array.length) + 1 )
                         |> Array.Linear.squeezeIn
-                            (\() -> Array.fromList [ -2, -1 ])
+                            ( ( direction, (array |> Array.length) + 1 ), \() -> Array.fromList [ -2, -1 ] )
                         |> Expect.equal array
                 )
             ]
@@ -407,16 +403,16 @@ arrayTests =
             [ test "Up → removes the element at the index"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
-                        |> Linear.at ( Up, 2 )
-                        |> Array.Linear.remove
+                        |> Array.Linear.elementRemove
+                            ( Up, 2 )
                         |> Expect.equal
                             (Array.fromList [ 1, 2, 4 ])
                 )
             , test "Down → removes the element at the index"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
-                        |> Linear.at ( Down, 1 )
-                        |> Array.Linear.remove
+                        |> Array.Linear.elementRemove
+                            ( Down, 1 )
                         |> Expect.equal
                             (Array.fromList [ 1, 2, 4 ])
                 )

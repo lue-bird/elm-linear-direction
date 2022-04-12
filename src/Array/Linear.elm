@@ -1,11 +1,10 @@
 module Array.Linear exposing
-    ( at
+    ( element
     , foldFrom
-    , remove, replaceWith, insert
+    , elementRemove, elementReplace, insert
     , padTo
     , take, drop, toChunks
     , squeezeIn
-    , access
     )
 
 {-| `Array` operations that can be applied in either direction.
@@ -13,7 +12,7 @@ module Array.Linear exposing
 
 ## scan
 
-@docs at
+@docs element
 
 
 ## transform
@@ -23,7 +22,7 @@ module Array.Linear exposing
 
 ### alter
 
-@docs remove, replaceWith, insert
+@docs elementRemove, elementReplace, insert
 @docs padTo
 
 
@@ -35,11 +34,6 @@ module Array.Linear exposing
 ### glue
 
 @docs squeezeIn
-
-
-## deprecated
-
-@docs access
 
 -}
 
@@ -88,13 +82,13 @@ foldFrom ( accumulationValueInitial, direction, reduce ) =
     import Array
 
     Array.fromList [ 'a', 'c', 'd' ]
-        |> Linear.at ( Up, 1 )
-        |> Array.Linear.insert (\() -> 'b')
+        |> Array.Linear.insert
+            ( ( Up, 1 ), \() -> 'b' )
     --> Array.fromList [ 'a', 'b', 'c', 'd' ]
 
     Array.fromList [ 'a', 'c', 'd' ]
-        |> Linear.at ( Down, 2 )
-        |> Array.Linear.insert (\() -> 'b')
+        |> Array.Linear.insert
+            ( ( Down, 2 ), \() -> 'b' )
     --> Array.fromList [ 'a', 'b', 'c', 'd' ]
 
 If the index is out of bounds, **nothing is inserted**.
@@ -103,28 +97,26 @@ If the index is out of bounds, **nothing is inserted**.
     import Array
 
     Array.fromList [ 'a', 'c', 'd' ]
-        |> Linear.at ( Up, -1 )
-        |> Array.Linear.insert (\() -> 'b')
+        |> Array.Linear.insert
+            ( ( Up, -1 ), \() -> 'b' )
     --> Array.fromList [ 'a', 'c', 'd' ]
 
     Array.fromList [ 'a', 'c', 'd' ]
-        |> Linear.at ( Up, 4 )
-        |> Array.Linear.insert (\() -> 'b')
+        |> Array.Linear.insert
+            ( ( Up, 4 ), \() -> 'b' )
     --> Array.fromList [ 'a', 'c', 'd' ]
 
 [`squeezeIn`](#squeezeIn) allows inserting a whole `Array` of elements.
 
 -}
 insert :
-    (() -> element)
-    ->
-        { structure : Array element
-        , location : ( DirectionLinear, Int )
-        }
+    ( ( DirectionLinear, Int ), () -> element )
     -> Array element
-insert elementToInsert =
+    -> Array element
+insert ( ( direction, index ), elementToInsert ) =
     squeezeIn
-        (\unit ->
+        ( ( direction, index )
+        , \unit ->
             Array.fromList [ elementToInsert unit ]
         )
 
@@ -135,59 +127,48 @@ insert elementToInsert =
     import Array
 
     Array.fromList [ 'a', 'd', 'e' ]
-        |> Linear.at ( Up, 1 )
         |> Array.Linear.squeezeIn
-            (\() -> Array.fromList [ 'b', 'c' ])
+            ( ( Up, 1 ), \() -> Array.fromList [ 'b', 'c' ] )
     --> Array.fromList [ 'a', 'b', 'c', 'd', 'e' ]
 
     Array.fromList [ 'a', 'd', 'e' ]
-        |> Linear.at ( Down, 2 )
         |> Array.Linear.squeezeIn
-            (\() -> Array.fromList [ 'b', 'c' ])
+            ( ( Down, 2 ), \() -> Array.fromList [ 'b', 'c' ] )
     --> Array.fromList [ 'a', 'b', 'c', 'd', 'e' ]
 
-If the index is out of bounds, **nothing is inserted**.
+If the index is outside of the `Array`'s range, **nothing is inserted**.
 
     import Linear exposing (DirectionLinear(..))
     import Array
 
     Array.fromList [ 'a', 'd', 'e' ]
-        |> Linear.at ( Up, -1 )
         |> Array.Linear.squeezeIn
-            (\() -> Array.fromList [ 'b', 'c' ])
+            ( ( Up, -1 ), \() -> Array.fromList [ 'b', 'c' ] )
     --> Array.fromList [ 'a', 'd', 'e' ]
 
     Array.fromList [ 'a', 'd', 'e' ]
-        |> Linear.at ( Up, 4 )
         |> Array.Linear.squeezeIn
-            (\() -> Array.fromList [ 'b', 'c' ])
+            ( ( Up, 4 ), \() -> Array.fromList [ 'b', 'c' ] )
     --> Array.fromList [ 'a', 'd', 'e' ]
 
 [`insert`](#insert) allows inserting a single element.
 
 -}
 squeezeIn :
-    (() -> Array element)
-    ->
-        { structure : Array element
-        , location : ( DirectionLinear, Int )
-        }
+    ( ( DirectionLinear, Int ), () -> Array element )
     -> Array element
-squeezeIn arrayToSqueezeIn =
+    -> Array element
+squeezeIn ( ( direction, index ), arrayToSqueezeIn ) =
     \array ->
-        let
-            ( direction, index ) =
-                array.location
-        in
-        if index >= 0 && index <= (array.structure |> Array.length) then
+        if index >= 0 && index <= (array |> Array.length) then
             concat direction
-                [ array.structure |> take ( direction, index )
+                [ array |> take ( direction, index )
                 , arrayToSqueezeIn ()
-                , array.structure |> drop ( direction, index )
+                , array |> drop ( direction, index )
                 ]
 
         else
-            array.structure
+            array
 
 
 {-| Kick an element out of an `Array` at a given index in a direction.
@@ -196,13 +177,11 @@ squeezeIn arrayToSqueezeIn =
     import Array
 
     Array.fromList [ 'a', 'a', 'b' ]
-        |> Linear.at ( Up, 1 )
-        |> Array.Linear.remove
+        |> Array.Linear.elementRemove ( Up, 1 )
     --> Array.fromList [ 'a', 'b' ]
 
     Array.fromList [ 'a', 'b', 'c', 'd' ]
-        |> Linear.at ( Down, 0 )
-        |> Array.Linear.remove
+        |> Array.Linear.elementRemove ( Down, 0 )
     --> Array.fromList [ 'a', 'b', 'c' ]
 
 If the index is out of bounds, nothing is changed.
@@ -211,35 +190,28 @@ If the index is out of bounds, nothing is changed.
     import Array
 
     Array.fromList [ 'a', 'a', 'b' ]
-        |> Linear.at ( Up, -1 )
-        |> Array.Linear.remove
+        |> Array.Linear.elementRemove ( Up, -1 )
     --> Array.fromList [ 'a', 'a', 'b' ]
 
     Array.fromList [ 'a', 'a', 'b' ]
-        |> Linear.at ( Up, 100 )
-        |> Array.Linear.remove
+        |> Array.Linear.elementRemove ( Up, 100 )
     --> Array.fromList [ 'a', 'a', 'b' ]
 
 -}
-remove :
-    { structure : Array element
-    , location : ( DirectionLinear, Int )
-    }
+elementRemove :
+    ( DirectionLinear, Int )
     -> Array element
-remove =
+    -> Array element
+elementRemove ( direction, index ) =
     \array ->
-        let
-            ( direction, index ) =
-                array.location
-        in
         if index >= 0 then
             concat direction
-                [ array.structure |> take ( direction, index )
-                , array.structure |> drop ( direction, index + 1 )
+                [ array |> take ( direction, index )
+                , array |> drop ( direction, index + 1 )
                 ]
 
         else
-            array.structure
+            array
 
 
 {-| Append a `List` of `Array`s in a direction.
@@ -276,68 +248,18 @@ concat direction arrays =
             )
 
 
-{-|
-
-  - @deprecated
-
-    Removed with the next major version
-
-    → call [`Array.Linear.at`](#at) directly.
-
-The element at an index in a direction.
-
-    import Linear exposing (DirectionLinear(..))
-    import Array
-
-    Array.fromList [ "lose", "win", "lose" ]
-        |> Linear.at ( Down, 0 )
-        |> Array.Linear.access
-    --> "lose" |> Ok
-
-
-    Array.fromList [ "lose", "win", "lose" ]
-        |> Linear.at ( Up, 0 )
-        |> Array.Linear.access
-    --> "lose" |> Ok
-
-`Err` if the index is out of range.
-
-    import Linear exposing (DirectionLinear(..), ExpectedIndexInRange(..))
-    import Array
-
-    Array.fromList [ 1, 2, 3 ]
-        |> Linear.at ( Up, -1 )
-        |> Array.Linear.access
-    --> Err (ExpectedIndexForLength 3)
-
-    Array.fromList [ 1, 2, 3 ]
-        |> Linear.at ( Up, 100 )
-        |> Array.Linear.access
-    --> Err (ExpectedIndexForLength 3)
-
--}
-access :
-    { structure : Array element
-    , location : ( DirectionLinear, Int )
-    }
-    -> Result ExpectedIndexInRange element
-access =
-    \array ->
-        array.structure |> at array.location
-
-
 {-| The element at an index in a direction.
 
     import Linear exposing (DirectionLinear(..))
     import Array
 
     Array.fromList [ "lose", "win", "lose" ]
-        |> Array.Linear.at ( Down, 0 )
+        |> Array.Linear.element ( Down, 0 )
     --> "lose" |> Ok
 
 
     Array.fromList [ "lose", "win", "lose" ]
-        |> Array.Linear.at ( Up, 0 )
+        |> Array.Linear.element ( Up, 0 )
     --> "lose" |> Ok
 
 `Err` if the index is out of range.
@@ -346,23 +268,22 @@ access =
     import Array
 
     Array.fromList [ 1, 2, 3 ]
-        |> Array.Linear.at ( Up, -1 )
+        |> Array.Linear.element ( Up, -1 )
     --> Err (ExpectedIndexForLength 3)
 
     Array.fromList [ 1, 2, 3 ]
-        |> Array.Linear.at ( Up, 100 )
+        |> Array.Linear.element ( Up, 100 )
     --> Err (ExpectedIndexForLength 3)
 
 -}
-at :
+element :
     ( DirectionLinear, Int )
     -> Array element
     -> Result ExpectedIndexInRange element
-at ( direction, index ) =
+element ( direction, index ) =
     \array ->
         let
             length =
-                -- O(1)
                 array |> Array.length
 
             indexUp =
@@ -389,13 +310,13 @@ at ( direction, index ) =
     import Array
 
     Array.fromList [ "I", "am", "ok" ]
-        |> Linear.at ( Up, 2 )
-        |> Array.Linear.replaceWith (\() -> "confusion")
+        |> Array.Linear.elementReplace
+            ( ( Up, 2 ), \() -> "confusion" )
     --> Array.fromList [ "I", "am", "confusion" ]
 
     Array.fromList [ "I", "am", "ok" ]
-        |> Linear.at ( Down, 1 )
-        |> Array.Linear.replaceWith (\() -> "feel")
+        |> Array.Linear.elementReplace
+            ( ( Down, 1 ), \() -> "feel" )
     --> Array.fromList [ "I", "feel", "ok" ]
 
 If the index is out of range, the `Array` is unaltered.
@@ -404,29 +325,22 @@ If the index is out of range, the `Array` is unaltered.
     import Array
 
     Array.fromList [ "I", "am", "ok" ]
-        |> Linear.at ( Up, -1 )
-        |> Array.Linear.replaceWith (\() -> "is")
+        |> Array.Linear.elementReplace
+            ( ( Up, -1 ), \() -> "is" )
     --> Array.fromList [ "I", "am", "ok" ]
 
 -}
-replaceWith :
-    (() -> element)
-    ->
-        { structure : Array element
-        , location : ( DirectionLinear, Int )
-        }
+elementReplace :
+    ( ( DirectionLinear, Int ), () -> element )
     -> Array element
-replaceWith elementReplacement =
+    -> Array element
+elementReplace ( ( direction, index ), elementReplacement ) =
     \array ->
         let
             lastIndex =
-                (array.structure |> Array.length) - 1
+                (array |> Array.length) - 1
 
             indexUp =
-                let
-                    ( direction, index ) =
-                        array.location
-                in
                 case direction of
                     Up ->
                         index
@@ -435,11 +349,10 @@ replaceWith elementReplacement =
                         lastIndex - index
         in
         if indexUp >= 0 && indexUp <= lastIndex then
-            array.structure
-                |> Array.set indexUp (elementReplacement ())
+            array |> Array.set indexUp (elementReplacement ())
 
         else
-            array.structure
+            array
 
 
 {-| A given number of elements from one side.
@@ -636,9 +549,9 @@ toChunks chunking =
             { after
                 | chunks =
                     after.chunks
-                        |> Linear.at ( direction, 0 )
                         |> insert
-                            (\() ->
+                            ( ( direction, 0 )
+                            , \() ->
                                 array |> take ( direction, chunking.length )
                             )
             }

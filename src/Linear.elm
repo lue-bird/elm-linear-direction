@@ -1,7 +1,7 @@
 module Linear exposing
     ( DirectionLinear(..)
     , opposite
-    , at, ExpectedIndexInRange(..)
+    , ExpectedIndexInRange(..)
     )
 
 {-| `Up` or `Down` a structure.
@@ -16,7 +16,7 @@ module Linear exposing
 
 ## index
 
-@docs at, ExpectedIndexInRange
+@docs ExpectedIndexInRange
 
 -}
 
@@ -38,31 +38,6 @@ opposite direction =
 
         Down ->
             Up
-
-
-{-| Save a location alongside a structure.
-
-    import Array
-    import Array.Linear
-
-    Array.fromList [ 'a', 'c', 'd' ]
-        |> Linear.at ( Down, 2 )
-        |> Array.Linear.insert (\() -> 'b')
-    --> Array.fromList [ 'a', 'b', 'c', 'd' ]
-
--}
-at :
-    location
-    -> structure
-    ->
-        { structure : structure
-        , location : location
-        }
-at location =
-    \structure ->
-        { structure = structure
-        , location = location
-        }
 
 
 {-| Locating an index can fail for

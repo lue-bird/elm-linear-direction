@@ -1,10 +1,9 @@
 module List.Linear exposing
-    ( at
+    ( element
     , foldFrom
-    , alter
+    , elementAlter
     , take, drop
     , toChunks
-    , access
     )
 
 {-| `List` operations that can be applied in either direction.
@@ -12,25 +11,20 @@ module List.Linear exposing
 
 ## scan
 
-@docs at
+@docs element
 
 
 ## transform
 
 @docs foldFrom
 
-@docs alter
+@docs elementAlter
 
 
 ### part
 
 @docs take, drop
 @docs toChunks
-
-
-## deprecated
-
-@docs access
 
 -}
 
@@ -199,66 +193,16 @@ drop ( direction, amount ) =
                     |> List.take ((list |> List.length) - amount)
 
 
-{-|
-
-  - @deprecated
-
-    Removed with the next major version
-
-    → call [`Array.Linear.at`](#at) directly
-
-`Just` the element at the given index in the list in a [direction](Linear#DirectionLinear):
-
-    import Linear exposing (DirectionLinear(..))
-
-    [ 0, 1, 2, 3 ]
-        |> Linear.at ( Down, 0 )
-        |> List.Linear.access
-    --> Ok 3
-
-    [ 0, 1, 2, 3 ]
-        |> Linear.at ( Up, 2 )
-        |> List.Linear.access
-    --> Ok 2
-
-`Err` if the index is out of range:
-
-    import Linear exposing (DirectionLinear(..), ExpectedIndexInRange(..))
-
-    [ 0, 1, 2, 3 ]
-        |> Linear.at ( Up, 5 )
-        |> List.Linear.access
-    --> Err (ExpectedIndexForLength 4)
-
-    [ 0, 1, 2, 3 ]
-        |> Linear.at ( Up, -1 )
-        |> List.Linear.access
-    --> Err (ExpectedIndexForLength 4)
-
-If you're using [`at`](Linear#at)-operations often, consider using an `Array` instead of a `List`
-to get `O(log n)` vs. `O(n)` random access performance.
-
--}
-access :
-    { structure : List element
-    , location : ( DirectionLinear, Int )
-    }
-    -> Result ExpectedIndexInRange element
-access =
-    \list ->
-        list.structure |> at list.location
-
-
 {-| `Just` the element at the given index in the list in a [direction](Linear#DirectionLinear):
 
     import Linear exposing (DirectionLinear(..))
 
     [ 0, 1, 2, 3 ]
-        |> List.Linear.at ( Down, 0 )
+        |> List.Linear.element ( Down, 0 )
     --> Ok 3
 
     [ 0, 1, 2, 3 ]
-        |> List.Linear.at ( Up, 2 )
+        |> List.Linear.element ( Up, 2 )
     --> Ok 2
 
 `Err` if the index is out of range:
@@ -266,22 +210,22 @@ access =
     import Linear exposing (DirectionLinear(..), ExpectedIndexInRange(..))
 
     [ 0, 1, 2, 3 ]
-        |> List.Linear.at ( Up, 5 )
+        |> List.Linear.element ( Up, 5 )
     --> Err (ExpectedIndexForLength 4)
 
     [ 0, 1, 2, 3 ]
-        |> List.Linear.at ( Up, -1 )
+        |> List.Linear.element ( Up, -1 )
     --> Err (ExpectedIndexForLength 4)
 
 If you're using at-operations often, consider using an `Array` instead of a `List`
 to get `O(log n)` vs. `O(n)` random access performance.
 
 -}
-at :
+element :
     ( DirectionLinear, Int )
     -> List element
     -> Result ExpectedIndexInRange element
-at ( direction, index ) =
+element ( direction, index ) =
     \list ->
         let
             wholeLength =
@@ -312,8 +256,8 @@ at ( direction, index ) =
     import Linear exposing (DirectionLinear(..))
 
     [ 1, 2, 2 ]
-        |> Linear.at ( Down, 0 )
-        |> List.Linear.alter (\n -> n + 1)
+        |> List.Linear.elementAlter
+            ( ( Down, 0 ), \n -> n + 1 )
     --> [ 1, 2, 3 ]
 
 Do nothing if the index is out of range:
@@ -321,51 +265,45 @@ Do nothing if the index is out of range:
     import Linear exposing (DirectionLinear(..))
 
     [ 0, 1, 2, 3 ]
-        |> Linear.at ( Up, 4 )
-        |> List.Linear.alter (\_ -> 123)
+        |> List.Linear.elementAlter
+            ( ( Up, 4 ), \_ -> 123)
     --> [ 0, 1, 2, 3 ]
 
     [ 0, 1, 2, 3 ]
-        |> Linear.at ( Up, -1 )
-        |> List.Linear.alter (\_ -> 123)
+        |> List.Linear.elementAlter
+            ( ( Up, -1 ), \_ -> 123 )
     --> [ 0, 1, 2, 3 ]
 
 If you're using at-operations often, consider using an `Array` instead of a `List`
 to get `O(log n)` vs. `O(n)` random access performance.
 
 -}
-alter :
-    (element -> element)
-    ->
-        { structure : List element
-        , location : ( DirectionLinear, Int )
-        }
+elementAlter :
+    ( ( DirectionLinear, Int ), element -> element )
     -> List element
-alter elementAlter =
+    -> List element
+elementAlter ( ( direction, indexInDirection ), alter ) =
     \list ->
         let
-            ( direction, indexInDirection ) =
-                list.location
-
             indexUp =
                 case direction of
                     Up ->
                         indexInDirection
 
                     Down ->
-                        (list.structure |> List.length) - 1 - indexInDirection
+                        (list |> List.length) - 1 - indexInDirection
         in
         if indexUp >= 0 then
-            case list.structure |> List.drop indexUp of
+            case list |> List.drop indexUp of
                 [] ->
-                    list.structure
+                    list
 
                 elementAtIndex :: beyondIndex ->
-                    (list.structure |> List.take indexUp)
-                        ++ ((elementAtIndex |> elementAlter) :: beyondIndex)
+                    (list |> List.take indexUp)
+                        ++ ((elementAtIndex |> alter) :: beyondIndex)
 
         else
-            list.structure
+            list
 
 
 {-| Keep the order if `Up`, reverse if `Down`.
