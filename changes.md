@@ -1,12 +1,98 @@
-## 5.0.0 plans
+## 6.0.0 plans
 
   - switch to `bounded-nat` for index & length
-  - in `Array.Linear`
-      - remove `access` in favor of `at`
-  - in `List.Linear`
-      - remove `access` in favor of `at`
 
 # changelog
+
+## 5.0.0
+
+  - in `Linear`
+      - removed `at`
+  - in `Array.Linear`
+      - renamed `at` to `element`
+      - removed `access` in favor of `element`
+      - changed
+        ```elm
+        remove :
+            { structure : Array element
+            , location : ( DirectionLinear, Int )
+            }
+            -> Array element
+        ```
+        to
+        ```elm
+        elementRemove :
+            ( DirectionLinear, Int )
+            -> Array element
+            -> Array element
+        ```
+      - changed
+        ```elm
+        replaceWith :
+            (() -> element)
+            -> { structure : Array element
+               , location : ( DirectionLinear, Int )
+               }
+            -> Array element
+        ```
+        to
+        ```elm
+        elementReplace :
+            ( ( DirectionLinear, Int ), () -> element )
+            -> Array element
+            -> Array element
+        ```
+      - changed
+        ```elm
+        insert :
+            (() -> element)
+            -> { structure : Array element
+               , location : ( DirectionLinear, Int )
+               }
+            -> Array element
+        ```
+        to
+        ```elm
+        insert :
+            ( ( DirectionLinear, Int ), () -> element )
+            -> Array element
+            -> Array element
+        ```
+      - changed
+        ```elm
+        squeezeIn :
+            (() -> Array element)
+            -> { structure : Array element
+               , location : ( DirectionLinear, Int )
+               }
+            -> Array element
+        ```
+        to
+        ```elm
+        squeezeIn :
+            ( ( DirectionLinear, Int ), () -> Array element )
+            -> Array element
+            -> Array element
+        ```
+  - in `List.Linear`
+      - renamed `at` to `element`
+      - removed `access` in favor of `element`
+      - changed
+        ```elm
+        alter :
+            (element -> element)
+            -> { structure : List element
+               , location : ( DirectionLinear, Int )
+               }
+            -> List element
+        ```
+        to
+        ```elm
+        elementAlter :
+            ( ( DirectionLinear, Int ), element -> element )
+            -> List element
+            -> List element
+        ```
 
 ### 4.1.0
 
@@ -93,11 +179,11 @@
         to
         ```elm
         squeezeIn :
-            Array.Array element
-            -> { structure : Array.Array element
-               , location : ( Linear.DirectionLinear, Basics.Int )
+            Array element
+            -> { structure : Array element
+               , location : ( DirectionLinear, Int )
                }
-            -> Array.Array element
+            -> Array element
         ```
       - changed
         ```elm
@@ -117,12 +203,12 @@
         to
         ```elm
         padTo :
-            { lengthMinimum : Basics.Int
+            { lengthMinimum : Int
             , pad :
-                  ( Linear.DirectionLinear, Basics.Int -> Array.Array element )
+                  ( DirectionLinear, Int -> Array element )
             }
-            -> Array.Array element
-            -> Array.Array element
+            -> Array element
+            -> Array element
         ```
       - changed
         ```elm
@@ -135,10 +221,10 @@
         to
         ```elm
         toChunks :
-            { length : Basics.Int, remainder : Linear.DirectionLinear }
-            -> Array.Array element
-            -> { chunks : Array.Array (Array.Array element)
-               , remainder : Array.Array element
+            { length : Int, remainder : DirectionLinear }
+            -> Array element
+            -> { chunks : Array (Array element)
+               , remainder : Array element
                }
         ```
   - in `List.Linear`
