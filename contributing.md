@@ -10,7 +10,7 @@
 
 ### commits
 look like this:
-> do details | make other details & this
+> details +, other details & this -
 
 | mark     | means   |
 | :------- | :------ |
