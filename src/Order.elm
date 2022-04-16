@@ -54,6 +54,9 @@ module Order exposing
       - `Sort.Set` & `Sort.Dict` are very nice! You can even use `Sort.Set.empty (Sorter.custom Order.x)` if you wanted
   - [`nikita-volkov/`: `Typeclasses-Classes-Comparison`](https://package.elm-lang.org/packages/nikita-volkov/typeclasses/latest/Typeclasses-Classes-Comparison)
       - almost no API, _only_ `int`,`float`,`comparable` & `map`)
+      - [`HashingContainers.HashSet`](https://package.elm-lang.org/packages/nikita-volkov/hashing-containers/2.1.0/HashingContainers-HashSet),
+        [`HashingContainers.HashDict`](https://package.elm-lang.org/packages/nikita-volkov/hashing-containers/2.1.0/HashingContainers-HashDict)
+        are nice!
   - ... know others? → PR
 
 -}
