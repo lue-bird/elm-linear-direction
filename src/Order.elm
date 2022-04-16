@@ -52,6 +52,8 @@ module Order exposing
       - wrapped in an opaque `type` → more verbose
       - missing `list`, `maybe`, ... sorters
       - `Sort.Set` & `Sort.Dict` are very nice! You can even use `Sort.Set.empty (Sorter.custom Order.x)` if you wanted
+  - [`nikita-volkov/`: `Typeclasses-Classes-Comparison`](https://package.elm-lang.org/packages/nikita-volkov/typeclasses/latest/Typeclasses-Classes-Comparison)
+      - almost no API, _only_ `int`,`float`,`comparable` & `map`)
   - ... know others? → PR
 
 -}
