@@ -1,7 +1,7 @@
 module Array.Linear exposing
     ( element
     , foldFrom
-    , elementRemove, elementReplace, insert
+    , elementRemove, elementReplace, elementAlter, insert
     , padTo
     , take, drop, toChunks
     , squeezeIn
@@ -22,7 +22,7 @@ module Array.Linear exposing
 
 ### alter
 
-@docs elementRemove, elementReplace, insert
+@docs elementRemove, elementReplace, elementAlter, insert
 @docs padTo
 
 
@@ -171,49 +171,6 @@ squeezeIn ( ( direction, index ), arrayToSqueezeIn ) =
             array
 
 
-{-| Kick an element out of an `Array` at a given index in a direction.
-
-    import Linear exposing (DirectionLinear(..))
-    import Array
-
-    Array.fromList [ 'a', 'a', 'b' ]
-        |> Array.Linear.elementRemove ( Up, 1 )
-    --> Array.fromList [ 'a', 'b' ]
-
-    Array.fromList [ 'a', 'b', 'c', 'd' ]
-        |> Array.Linear.elementRemove ( Down, 0 )
-    --> Array.fromList [ 'a', 'b', 'c' ]
-
-If the index is out of bounds, nothing is changed.
-
-    import Linear exposing (DirectionLinear(..))
-    import Array
-
-    Array.fromList [ 'a', 'a', 'b' ]
-        |> Array.Linear.elementRemove ( Up, -1 )
-    --> Array.fromList [ 'a', 'a', 'b' ]
-
-    Array.fromList [ 'a', 'a', 'b' ]
-        |> Array.Linear.elementRemove ( Up, 100 )
-    --> Array.fromList [ 'a', 'a', 'b' ]
-
--}
-elementRemove :
-    ( DirectionLinear, Int )
-    -> Array element
-    -> Array element
-elementRemove ( direction, index ) =
-    \array ->
-        if index >= 0 then
-            concat direction
-                [ array |> take ( direction, index )
-                , array |> drop ( direction, index + 1 )
-                ]
-
-        else
-            array
-
-
 {-| Append a `List` of `Array`s in a direction.
 
     import Linear exposing (DirectionLinear(..))
@@ -304,6 +261,49 @@ element ( direction, index ) =
             ExpectedIndexForLength length |> Err
 
 
+{-| Kick an element out of an `Array` at a given index in a direction.
+
+    import Linear exposing (DirectionLinear(..))
+    import Array
+
+    Array.fromList [ 'a', 'a', 'b' ]
+        |> Array.Linear.elementRemove ( Up, 1 )
+    --> Array.fromList [ 'a', 'b' ]
+
+    Array.fromList [ 'a', 'b', 'c', 'd' ]
+        |> Array.Linear.elementRemove ( Down, 0 )
+    --> Array.fromList [ 'a', 'b', 'c' ]
+
+If the index is out of bounds, nothing is changed.
+
+    import Linear exposing (DirectionLinear(..))
+    import Array
+
+    Array.fromList [ 'a', 'a', 'b' ]
+        |> Array.Linear.elementRemove ( Up, -1 )
+    --> Array.fromList [ 'a', 'a', 'b' ]
+
+    Array.fromList [ 'a', 'a', 'b' ]
+        |> Array.Linear.elementRemove ( Up, 100 )
+    --> Array.fromList [ 'a', 'a', 'b' ]
+
+-}
+elementRemove :
+    ( DirectionLinear, Int )
+    -> Array element
+    -> Array element
+elementRemove ( direction, index ) =
+    if index >= 0 then
+        \array ->
+            concat direction
+                [ array |> take ( direction, index )
+                , array |> drop ( direction, index + 1 )
+                ]
+
+    else
+        identity
+
+
 {-| Set the element at an index in a direction.
 
     import Linear exposing (DirectionLinear(..))
@@ -353,6 +353,50 @@ elementReplace ( ( direction, index ), elementReplacement ) =
 
         else
             array
+
+
+{-| Set the element at an index in a direction.
+
+    import Linear exposing (DirectionLinear(..))
+    import Array
+
+    Array.fromList [ "I", "am", "ok" ]
+        |> Array.Linear.elementReplace
+            ( ( Up, 2 ), String.toUpper )
+    --> Array.fromList [ "I", "am", "OK" ]
+
+    Array.fromList [ "I", "am", "ok" ]
+        |> Array.Linear.elementReplace
+            ( ( Down, 0 ), String.toUpper )
+    --> Array.fromList [ "I", "am", "OK" ]
+
+If the index is out of range, the `Array` is unaltered.
+
+    import Linear exposing (DirectionLinear(..))
+    import Array
+
+    Array.fromList [ "I", "am", "ok" ]
+        |> Array.Linear.elementReplace
+            ( ( Up, -1 ), String.toUpper )
+    --> Array.fromList [ "I", "am", "ok" ]
+
+-}
+elementAlter :
+    ( ( DirectionLinear, Int ), element -> element )
+    -> Array element
+    -> Array element
+elementAlter ( location, elementAlter_ ) =
+    \array ->
+        case array |> element location of
+            Err (ExpectedIndexForLength _) ->
+                array
+
+            Ok element_ ->
+                array
+                    |> elementReplace
+                        ( location
+                        , \() -> element_ |> elementAlter_
+                        )
 
 
 {-| A given number of elements from one side.
