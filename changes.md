@@ -4,6 +4,11 @@
 
 # changelog
 
+## 5.1.0
+
+  - in `Linear`
+      - add `directionToString`
+
 ## 5.0.0
 
   - in `Linear`
