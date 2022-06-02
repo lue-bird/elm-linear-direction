@@ -7,7 +7,7 @@
 ## 5.1.0
 
   - in `Linear`
-      - add `directionToString`
+      - added `directionToString`
 
 ## 5.0.0
 
