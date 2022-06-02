@@ -179,7 +179,7 @@ listTests =
 arrayTests : Test
 arrayTests =
     describe "array"
-        [ describe "at"
+        [ describe "element"
             [ Test.fuzz
                 (Fuzz.constant
                     (\array direction -> { array = array, direction = direction })
@@ -241,7 +241,7 @@ arrayTests =
                             (Err (ExpectedIndexForLength (array |> Array.length)))
                 )
             ]
-        , describe "replaceWith"
+        , describe "elementReplace"
             [ test "valid index Up → sets the value at an index to a new value"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
@@ -353,7 +353,7 @@ arrayTests =
                         |> Expect.equal array
                 )
             ]
-        , describe "squeezeInAt"
+        , describe "squeezeIn"
             [ describe "valid index"
                 [ test "Up"
                     (\() ->
@@ -399,7 +399,7 @@ arrayTests =
                         |> Expect.equal array
                 )
             ]
-        , describe "removeAt"
+        , describe "elementRemove"
             [ test "Up → removes the element at the index"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
@@ -416,6 +416,69 @@ arrayTests =
                         |> Expect.equal
                             (Array.fromList [ 1, 2, 4 ])
                 )
+            ]
+        , Test.describe
+            "elementAlter"
+            [ Test.describe
+                "Up"
+                [ test
+                    "valid index"
+                    (\() ->
+                        Array.fromList [ 1, 2, 3, 4 ]
+                            |> Array.Linear.elementAlter
+                                ( ( Up, 2 ), negate )
+                            |> Expect.equal
+                                (Array.fromList [ 1, 2, -3, 4 ])
+                    )
+                , test
+                    "negative index"
+                    (\() ->
+                        Array.fromList [ 1, 2, 3, 4 ]
+                            |> Array.Linear.elementAlter
+                                ( ( Up, -1 ), negate )
+                            |> Expect.equal
+                                (Array.fromList [ 1, 2, 3, 4 ])
+                    )
+                , test
+                    "too high index"
+                    (\() ->
+                        Array.fromList [ 1, 2, 3, 4 ]
+                            |> Array.Linear.elementAlter
+                                ( ( Up, 4 ), negate )
+                            |> Expect.equal
+                                (Array.fromList [ 1, 2, 3, 4 ])
+                    )
+                ]
+            , Test.describe
+                "Down"
+                [ test
+                    "valid index"
+                    (\() ->
+                        Array.fromList [ 1, 2, 3, 4 ]
+                            |> Array.Linear.elementAlter
+                                ( ( Down, 1 ), negate )
+                            |> Expect.equal
+                                (Array.fromList [ 1, 2, -3, 4 ])
+                    )
+                , test
+                    "negative index"
+                    (\() ->
+                        Array.fromList [ 1, 2, 3, 4 ]
+                            |> Array.Linear.elementAlter
+                                ( ( Down, -1 ), negate )
+                            |> Expect.equal
+                                (Array.fromList [ 1, 2, 3, 4 ])
+                    )
+                , test
+                    "too high index"
+                    (\() ->
+                        Array.fromList [ 1, 2, 3, 4 ]
+                            |> Array.Linear.elementAlter
+                                ( ( Down, 4 ), negate )
+                            |> Expect.equal
+                                (Array.fromList [ 1, 2, 3, 4 ])
+                    )
+                ]
             ]
         , describe "take"
             [ test "Up"
