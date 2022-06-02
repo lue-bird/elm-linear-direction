@@ -1,6 +1,7 @@
 module Linear exposing
     ( DirectionLinear(..)
     , opposite
+    , directionToString
     , ExpectedIndexInRange(..)
     )
 
@@ -12,6 +13,11 @@ module Linear exposing
 ## alter
 
 @docs opposite
+
+
+## transform
+
+@docs directionToString
 
 
 ## index
@@ -38,6 +44,18 @@ opposite direction =
 
         Down ->
             Up
+
+
+{-| The [direction](#DirectionLinear)'s lowercase name.
+-}
+directionToString : DirectionLinear -> String
+directionToString direction =
+    case direction of
+        Up ->
+            "up"
+
+        Down ->
+            "down"
 
 
 {-| Locating an index can fail for
