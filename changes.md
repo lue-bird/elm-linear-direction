@@ -4,6 +4,11 @@
 
 # changelog
 
+## 5.2.0
+
+  - in `Array.Linear`
+      - added `elementAlter`
+
 ## 5.1.0
 
   - in `Linear`
