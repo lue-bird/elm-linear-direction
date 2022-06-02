@@ -361,12 +361,12 @@ elementReplace ( ( direction, index ), elementReplacement ) =
     import Array
 
     Array.fromList [ "I", "am", "ok" ]
-        |> Array.Linear.elementReplace
+        |> Array.Linear.elementAlter
             ( ( Up, 2 ), String.toUpper )
     --> Array.fromList [ "I", "am", "OK" ]
 
     Array.fromList [ "I", "am", "ok" ]
-        |> Array.Linear.elementReplace
+        |> Array.Linear.elementAlter
             ( ( Down, 0 ), String.toUpper )
     --> Array.fromList [ "I", "am", "OK" ]
 
@@ -376,7 +376,7 @@ If the index is out of range, the `Array` is unaltered.
     import Array
 
     Array.fromList [ "I", "am", "ok" ]
-        |> Array.Linear.elementReplace
+        |> Array.Linear.elementAlter
             ( ( Up, -1 ), String.toUpper )
     --> Array.fromList [ "I", "am", "ok" ]
 
