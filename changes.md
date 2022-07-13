@@ -4,6 +4,11 @@
 
 # changelog
 
+## 5.3.0
+
+  - `Array.Linear`
+      - glue` add
+
 ## 5.2.0
 
   - in `Array.Linear`

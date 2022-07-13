@@ -512,6 +512,33 @@ arrayTests =
                             (Array.fromList [ 1, 2, 3 ])
                 )
             ]
+        , let
+            arrayAndExtensionFuzz =
+                Fuzz.constant
+                    (\array extension ->
+                        { array = array, extension = extension }
+                    )
+                    |> Fuzz.andMap (Fuzz.array Fuzz.int)
+                    |> Fuzz.andMap (Fuzz.array Fuzz.int)
+          in
+          describe "glue"
+            [ Test.fuzz arrayAndExtensionFuzz
+                "Up"
+                (\{ array, extension } ->
+                    array
+                        |> Array.Linear.glue Up extension
+                        |> Expect.equal
+                            (Array.append array extension)
+                )
+            , Test.fuzz arrayAndExtensionFuzz
+                "Down"
+                (\{ array, extension } ->
+                    array
+                        |> Array.Linear.glue Down extension
+                        |> Expect.equal
+                            (Array.append extension array)
+                )
+            ]
         , describe "toChunks"
             [ test "Up"
                 (\() ->

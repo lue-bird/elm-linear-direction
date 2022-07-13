@@ -4,7 +4,7 @@ module Array.Linear exposing
     , elementRemove, elementReplace, elementAlter, insert
     , padTo
     , take, drop, toChunks
-    , squeezeIn
+    , glue, squeezeIn
     )
 
 {-| `Array` operations that can be applied in either direction.
@@ -31,9 +31,9 @@ module Array.Linear exposing
 @docs take, drop, toChunks
 
 
-### glue
+### glueing
 
-@docs squeezeIn
+@docs glue, squeezeIn
 
 -}
 
@@ -472,6 +472,35 @@ drop ( direction, lengthToDrop ) =
                 ( direction |> Linear.opposite
                 , (array |> Array.length) - lengthToDrop
                 )
+
+
+{-| Attach elements of an `Array` to the end in a given [direction](https://package.elm-lang.org/packages/lue-bird/elm-linear-direction/latest/).
+
+    import Linear exposing (DirectionLinear(..))
+    import Array
+
+    Array.fromList [ 1, 2, 3 ]
+        |> Array.Linear.glue Up (Array.fromList [ 4, 5, 6 ])
+    --> Array.fromList [ 1, 2, 3, 4, 5, 6 ]
+
+    Array.fromList [ 1, 2, 3 ]
+        |> Array.Linear.glue Down (Array.fromList [ 4, 5, 6 ])
+    --> Array.fromList [ 4, 5, 6, 1, 2, 3 ]
+
+-}
+glue : DirectionLinear -> Array a -> (Array a -> Array a)
+glue direction extension =
+    \array ->
+        let
+            ( left, right ) =
+                case direction of
+                    Up ->
+                        ( array, extension )
+
+                    Down ->
+                        ( extension, array )
+        in
+        Array.append left right
 
 
 {-| **Pad** an `Array` in a direction.
