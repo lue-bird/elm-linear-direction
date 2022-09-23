@@ -1,13 +1,13 @@
 module Linear exposing
-    ( DirectionLinear(..)
+    ( Direction(..)
     , opposite
     , directionToString
-    , ExpectedIndexInRange(..)
+    , IndexIntOutOfRange(..)
     )
 
 {-| `Up` or `Down` a structure.
 
-@docs DirectionLinear
+@docs Direction
 
 
 ## alter
@@ -22,21 +22,25 @@ module Linear exposing
 
 ## index
 
-@docs ExpectedIndexInRange
+@docs IndexIntOutOfRange
 
 -}
 
 
-{-| Either `Up` or `Down`.
+{-| Either
+
+  - `Up` towards the beginning where indexes are getting bigger
+  - `Down` towards the beginning where indexes are getting smaller
+
 -}
-type DirectionLinear
+type Direction
     = Up
     | Down
 
 
-{-| The other [direction](#DirectionLinear). `Down` ⇆ `Up`
+{-| The other [`Direction`](#Direction): `Down` ⇆ `Up`
 -}
-opposite : DirectionLinear -> DirectionLinear
+opposite : Direction -> Direction
 opposite direction =
     case direction of
         Up ->
@@ -46,9 +50,9 @@ opposite direction =
             Up
 
 
-{-| The [direction](#DirectionLinear)'s lowercase name.
+{-| The [direction](#Direction)'s lowercase name
 -}
-directionToString : DirectionLinear -> String
+directionToString : Direction -> String
 directionToString direction =
     case direction of
         Up ->
@@ -58,11 +62,12 @@ directionToString direction =
             "down"
 
 
-{-| Locating an index can fail for
+{-| Locating an element at a given index `Int` fails if its
 
-  - negative numbers
-  - numbers >= the structure's length
+  - `<= -1`
+  - `>=` the structure's length
 
 -}
-type ExpectedIndexInRange
-    = ExpectedIndexForLength Int
+type IndexIntOutOfRange
+    = IndexIntNegative
+    | IndexIntBeyondElements

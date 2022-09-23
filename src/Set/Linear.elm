@@ -1,6 +1,6 @@
 module Set.Linear exposing (foldFrom)
 
-{-|
+{-| `Set` operations that can be applied in either [`Direction`](Linear#Direction)
 
 
 ## transform
@@ -9,32 +9,33 @@ module Set.Linear exposing (foldFrom)
 
 -}
 
-import Linear exposing (DirectionLinear(..))
+import Linear exposing (Direction(..))
 import Set exposing (Set)
 
 
-{-| Reduce a `Set` in a direction.
+{-| Reduce in a [`Direction`](Linear#Direction)
 
-    import Linear exposing (DirectionLinear(..))
+    import Linear exposing (Direction(..))
     import Set
 
     Set.fromList [ 'i', 'l', 'a', 'g' ]
-        |> Set.Linear.foldFrom ( "", Up, String.cons )
+        |> Set.Linear.foldFrom "" Up String.cons
     --> "liga"
 
     Set.fromList [ 'i', 'l', 'a', 'g' ]
-        |> Set.Linear.foldFrom ( "", Down, String.cons )
+        |> Set.Linear.foldFrom "" Down String.cons
     --> "agil"
 
 -}
 foldFrom :
-    ( accumulationValue
-    , DirectionLinear
-    , element -> accumulationValue -> accumulationValue
-    )
-    -> Set element
-    -> accumulationValue
-foldFrom ( accumulationValueInitial, direction, reduce ) =
+    accumulationValue
+    -> Direction
+    -> (element -> (accumulationValue -> accumulationValue))
+    ->
+        (Set element
+         -> accumulationValue
+        )
+foldFrom accumulationValueInitial direction reduce =
     let
         fold =
             case direction of
@@ -44,4 +45,4 @@ foldFrom ( accumulationValueInitial, direction, reduce ) =
                 Down ->
                     Set.foldr
     in
-    fold reduce accumulationValueInitial
+    \set -> set |> fold reduce accumulationValueInitial

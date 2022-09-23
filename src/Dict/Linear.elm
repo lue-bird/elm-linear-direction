@@ -1,6 +1,6 @@
 module Dict.Linear exposing (foldFrom)
 
-{-|
+{-| `Dict` operations that can be applied in either [`Direction`](Linear#Direction)
 
 
 ## transform
@@ -10,37 +10,35 @@ module Dict.Linear exposing (foldFrom)
 -}
 
 import Dict exposing (Dict)
-import Linear exposing (DirectionLinear(..))
+import Linear exposing (Direction(..))
 
 
-{-| Reduce `key`-`value`-entries in a `Dict` in a direction.
+{-| Reduce `{ key, value }`-entries in a [`Direction`](Linear#Direction)
 
-    import Linear exposing (DirectionLinear(..))
+    import Linear exposing (Direction(..))
     import Dict
 
     Dict.fromList
         [ ( "Dies", 39 ), ( "Wonu", 22 ), ( "Eorfe", 18 ) ]
-        |> Dict.Linear.foldFrom
-            ( [], Up, \user -> (::) user.key )
+        |> Dict.Linear.foldFrom [] Up (\user -> (::) user.key)
     --> [ "Wonu", "Eorfe", "Dies" ]
 
     Dict.fromList
         [ ( "Dies", 39 ), ( "Wonu", 22 ), ( "Eorfe", 18 ) ]
-        |> Dict.Linear.foldFrom
-            ( [], Down, \user -> (::) user.key )
+        |> Dict.Linear.foldFrom [] Down (\user -> (::) user.key)
     --> [ "Dies", "Eorfe", "Wonu" ]
 
 -}
 foldFrom :
-    ( accumulationValue
-    , DirectionLinear
-    , { key : key, value : value }
-      -> accumulationValue
-      -> accumulationValue
-    )
+    accumulationValue
+    -> Direction
+    ->
+        ({ key : key, value : value }
+         -> (accumulationValue -> accumulationValue)
+        )
     -> Dict key value
     -> accumulationValue
-foldFrom ( accumulationValueInitial, direction, reduce ) =
+foldFrom accumulationValueInitial direction reduce =
     let
         fold =
             case direction of
@@ -50,8 +48,10 @@ foldFrom ( accumulationValueInitial, direction, reduce ) =
                 Down ->
                     Dict.foldr
     in
-    fold
-        (\key value ->
-            { key = key, value = value } |> reduce
-        )
-        accumulationValueInitial
+    \dict ->
+        dict
+            |> fold
+                (\key value ->
+                    { key = key, value = value } |> reduce
+                )
+                accumulationValueInitial

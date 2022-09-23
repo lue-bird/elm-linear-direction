@@ -9,20 +9,20 @@ Q: Can direction be better expressed than in
       - many operations support negative indices, but others don't
       - not explicit → can have unintended side-effects
 
-A: Use the **direction as an argument**:
+A: Use the **[`Direction`](Linear#Direction] as an argument**:
 
 ```elm
-import Linear exposing (DirectionLinear(..))
+import Linear exposing (Direction(..))
 import List.Linear
 import Array exposing (Array)
 import Array.Linear
 
 [ 'l', 'i', 'v', 'e' ]
-    |> List.Linear.foldFrom ( "", Up, String.cons )
+    |> List.Linear.foldFrom "" Up String.cons
 --> "evil"
 
 [ 'l', 'i', 'v', 'e' ]
-    |> List.Linear.foldFrom ( "", Down, String.cons )
+    |> List.Linear.foldFrom "" Down String.cons
 --> "live"
 
 Array.fromList [ 'e', 'v', 'i', 'l' ]
@@ -42,19 +42,19 @@ Array.fromList [ 'e', 'v', 'i', 'l' ]
     import Array.Linear
 
     alter :
-        ( ( DirectionLinear, Int ), element -> element )
-        -> Array element
-        -> Array element
-    alter ( location, alter ) =
+        ( DirectionLinear, Int )
+        -> (element -> element)
+        -> (Array element -> Array element)
+    alter location alter =
         \array ->
-            array
-                |> Array.Linear.elementReplace
-                    ( location
-                    , \() ->
-                        array
-                            |> Array.Linear.element location
-                            |> alter
-                    )
+            case array |> Array.Linear.element location of
+                Err _ ->
+                    array
+                    
+                Ok elementAtLocation ->
+                    array
+                        |> Array.Linear.elementReplace location
+                            (\() -> elementAtLocation |> alter)
     ```
 
   - → direction is always explicit
