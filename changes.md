@@ -1,8 +1,32 @@
-## 6.0.0 plans
+## 6.1.0 plans
 
-  - switch to `bounded-nat` for index & length
+  - `Linear.directionFuzz` add
+      - waiting for `elm-test` major version 2 to not trigger a breaking change
 
-# changelog
+# changes log
+
+## 6.0.0
+
+  - `foldFrom ( init, dir, reduce )` → `foldFrom init dir reduce`
+  - `elementAlter ( location, alter )` → `elementAlter location alter`
+  - `squeezeIn ( location, array )` → `squeezeIn location array`
+  - `insert ( location, toInsert )` → `insert location toInsert`
+  - `elementReplace ( location, replacement )` → `elementReplace location replacement`
+  - `toChunks { length, remainder }` → `toChunksOf remainder length`
+  - `Array.Linear.padTo { lengthMinimum, pad = ( direction, padding ) }`
+    →
+    `Array.Linear.padToLength direction padding lengthMinimum`
+  - `module Linear`
+      - ```elm
+        ExpectedIndexInRange = ExpectedIndexForLength Int`
+        →
+        ```elm
+        type IndexIntOutOfRange
+            = IndexIntNegative
+            | IndexIntBeyondElements
+        ```
+      - `DirectionLinear` name → `Direction`
+  - `List.Linear.foldTraceFrom`, `.foldTrace` add
 
 ## 5.3.0
 
