@@ -1,7 +1,5 @@
 ## [linear direction](https://dark.elm.dmy.fr/packages/lue-bird/elm-linear-direction/latest/)
 
-Q: Can direction be better expressed than in
-
   - `foldr`, `foldl`: does `foldr` mean fold right? A quite unclear name
   - no `Array.getr/l`, `setr/l` but `foldr`, `foldl`?
   - negative indices
@@ -9,7 +7,7 @@ Q: Can direction be better expressed than in
       - many operations support negative indices, but others don't
       - not explicit → can have unintended side-effects
 
-A: Use the **[`Direction`](Linear#Direction] as an argument**:
+Better use the **[`Direction`](Linear#Direction) as an argument**!
 
 ```elm
 import Linear exposing (Direction(..))
@@ -32,7 +30,8 @@ Array.fromList [ 'e', 'v', 'i', 'l' ]
 
   - → a less cluttered API, e.g.
       - `foldFrom` instead of `foldr`, `foldl`
-      - `toChunks` instead of [`chunksFromLeft`/-`Right`](https://package.elm-lang.org/packages/elm-community/list-split/latest/List-Split)
+      - `toChunksOf` instead of [`chunksFromLeft`/-`Right`](https://package.elm-lang.org/packages/elm-community/list-split/latest/List-Split)
+      - `padToLength` instead of `resizerRepeat`, `resizelRepeat`, `resizerIndexed`, `resizelIndexed`
 
   - → deal with both directions at once
 
