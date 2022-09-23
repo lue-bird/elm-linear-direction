@@ -5,6 +5,10 @@
 
 # changes log
 
+#### 6.0.1
+
+  - readme correct, simplify
+
 ## 6.0.0
 
   - `foldFrom ( init, dir, reduce )` → `foldFrom init dir reduce`
