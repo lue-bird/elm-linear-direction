@@ -21,7 +21,7 @@ suite =
 listTests : Test
 listTests =
     Test.describe "list"
-        [ Test.describe "toChunks"
+        [ Test.describe "toChunksOf"
             [ test "Up"
                 (\() ->
                     [ 1, 2, 3, 4, 5, 6, 7 ]
@@ -610,7 +610,7 @@ arrayTests =
                             (Array.append extension array)
                 )
             ]
-        , Test.describe "toChunks"
+        , Test.describe "toChunksOf"
             [ test "Up"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4, 5, 6, 7 ]
@@ -636,7 +636,7 @@ arrayTests =
                             }
                 )
             ]
-        , Test.describe "padTo"
+        , Test.describe "padToLength"
             [ Test.describe "lengthMinimum > current length"
                 [ Test.fuzz
                     (Fuzz.array Fuzz.int)
