@@ -614,7 +614,7 @@ arrayTests =
             [ test "Up"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4, 5, 6, 7 ]
-                        |> Array.Linear.toChunks
+                        |> Array.Linear.toChunksOf
                             { length = 3, remainder = Up }
                         |> Expect.equal
                             { chunks =
@@ -627,7 +627,7 @@ arrayTests =
             , test "Down"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4, 5, 6, 7 ]
-                        |> Array.Linear.toChunks
+                        |> Array.Linear.toChunksOf
                             { length = 3, remainder = Down }
                         |> Expect.equal
                             { remainder = Array.fromList [ 1 ]

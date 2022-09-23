@@ -1,9 +1,14 @@
-## 6.1.0 plans
+## 7.1.0 plans
 
   - `Linear.directionFuzz` add
       - waiting for `elm-test` major version 2 to not trigger a breaking change
 
 # changes log
+
+## 7.0.0
+
+  - `Array.Linear` actualize changes made to other `module`s in 6.0.0
+    for `foldFrom`, `toChunksOf`
 
 #### 6.0.1
 

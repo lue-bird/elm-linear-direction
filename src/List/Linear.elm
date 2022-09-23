@@ -187,7 +187,7 @@ foldTraceReverse direction accumulate =
                                     |> (::) (accumulated |> accumulate element0)
 
 
-{-| Split into equal-`length` `chunks`.
+{-| Split into equal-sized `chunks` of a given length in a given [`Direction`](Linear#Direction)
 The left over elements to one side are in `remainder`
 
     import Linear exposing (Direction(..))
@@ -235,6 +235,7 @@ toChunksOf chunkingDirection chunkLength =
                 else
                     { chunks = [], remainder = list }
     in
+    -- I think we can optimize this further for Down
     \listToChunk ->
         let
             { chunks, remainder } =
@@ -262,7 +263,7 @@ toChunksOf chunkingDirection chunkLength =
         |> List.Linear.take ( Down, 2 )
     --> [ 3, 4 ]
 
-`[]` if the amount of elements to take is negative.
+`[]` if the amount of elements to take is negative
 
     import Linear exposing (Direction(..))
 
@@ -378,7 +379,7 @@ element ( direction, index ) =
                         IndexIntBeyondElements |> Err
 
 
-{-| Alter the element at the given index in a [`Direction`](Linear#Direction):
+{-| Alter the element at the given index in a [`Direction`](Linear#Direction)
 
     import Linear exposing (Direction(..))
 
@@ -387,7 +388,7 @@ element ( direction, index ) =
             (\n -> n + 1)
     --> [ 1, 2, 3 ]
 
-Do nothing if the index is out of range:
+Do nothing if the index is out of range
 
     import Linear exposing (Direction(..))
 
@@ -402,7 +403,7 @@ Do nothing if the index is out of range:
     --> [ 0, 1, 2, 3 ]
 
 If you're using at-operations often, consider using an `Array` instead of a `List`
-to get `O(log n)` vs. `O(n)` random access performance.
+to get `O(log n)` vs. `O(n)` random access performance
 
 -}
 elementAlter :
@@ -436,7 +437,7 @@ elementAlter ( direction, index ) elementAtLocationAlter =
             list
 
 
-{-| Keep the order if `Up`, reverse if `Down`.
+{-| Keep the order if `Up`, reverse if `Down`
 
     import Linear exposing (Direction(..))
 

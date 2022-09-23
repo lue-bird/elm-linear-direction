@@ -3,7 +3,7 @@ module Array.Linear exposing
     , foldFrom
     , elementRemove, elementReplace, elementAlter, insert
     , padToLength
-    , take, drop, toChunks
+    , take, drop, toChunksOf
     , glue, squeezeIn
     )
 
@@ -28,7 +28,7 @@ module Array.Linear exposing
 
 ### part
 
-@docs take, drop, toChunks
+@docs take, drop, toChunksOf
 
 
 ### glueing
@@ -48,22 +48,23 @@ import List.Linear
     import Array
 
     Array.fromList [ 'l', 'i', 'v', 'e' ]
-        |> Array.Linear.foldFrom ( "", Up, String.cons )
+        |> Array.Linear.foldFrom "" Up String.cons
     --> "evil"
 
     Array.fromList [ 'l', 'i', 'v', 'e' ]
-        |> Array.Linear.foldFrom ( "", Down, String.cons )
+        |> Array.Linear.foldFrom "" Down String.cons
     --> "live"
 
 -}
 foldFrom :
-    ( accumulationValue
-    , Direction
-    , element -> accumulationValue -> accumulationValue
-    )
-    -> Array element
-    -> accumulationValue
-foldFrom ( accumulationValueInitial, direction, reduce ) =
+    accumulationValue
+    -> Direction
+    -> (element -> (accumulationValue -> accumulationValue))
+    ->
+        (Array element
+         -> accumulationValue
+        )
+foldFrom accumulationValueInitial direction reduce =
     let
         fold =
             case direction of
@@ -91,7 +92,7 @@ foldFrom ( accumulationValueInitial, direction, reduce ) =
             (\() -> 'b')
     --> Array.fromList [ 'a', 'b', 'c', 'd' ]
 
-If the index is out of bounds, **nothing is inserted**.
+If the index is out of bounds, **nothing is inserted**
 
     import Linear exposing (Direction(..))
     import Array
@@ -106,14 +107,16 @@ If the index is out of bounds, **nothing is inserted**.
             (\() -> 'b')
     --> Array.fromList [ 'a', 'c', 'd' ]
 
-[`squeezeIn`](#squeezeIn) allows inserting a whole `Array` of elements.
+[`squeezeIn`](#squeezeIn) allows inserting a whole `Array` of elements
 
 -}
 insert :
     ( Direction, Int )
     -> (() -> element)
-    -> Array element
-    -> Array element
+    ->
+        (Array element
+         -> Array element
+        )
 insert ( direction, index ) elementToInsert =
     \array ->
         array
@@ -157,8 +160,10 @@ If the index is outside of the `Array`'s range, **nothing is inserted**
 squeezeIn :
     ( Direction, Int )
     -> (() -> Array element)
-    -> Array element
-    -> Array element
+    ->
+        (Array element
+         -> Array element
+        )
 squeezeIn ( direction, index ) arrayToSqueezeIn =
     \array ->
         if index >= 0 && index <= (array |> Array.length) then
@@ -219,7 +224,7 @@ listConcat direction =
         |> Array.Linear.element ( Up, 0 )
     --> Ok "lose"
 
-`Err` if the index is out of range.
+`Err` if the index is out of range
 
     import Linear exposing (Direction(..), IndexIntOutOfRange(..))
     import Array
@@ -235,8 +240,10 @@ listConcat direction =
 -}
 element :
     ( Direction, Int )
-    -> Array element
-    -> Result IndexIntOutOfRange element
+    ->
+        (Array element
+         -> Result IndexIntOutOfRange element
+        )
 element ( direction, index ) =
     if index <= -1 then
         \_ -> IndexIntNegative |> Err
@@ -273,7 +280,7 @@ element ( direction, index ) =
         |> Array.Linear.elementRemove ( Down, 0 )
     --> Array.fromList [ 'a', 'b', 'c' ]
 
-If the index is out of bounds, nothing is changed.
+If the index is out of bounds, nothing is changed
 
     import Linear exposing (Direction(..))
     import Array
@@ -289,8 +296,10 @@ If the index is out of bounds, nothing is changed.
 -}
 elementRemove :
     ( Direction, Int )
-    -> Array element
-    -> Array element
+    ->
+        (Array element
+         -> Array element
+        )
 elementRemove ( direction, index ) =
     if index >= 0 then
         \array ->
@@ -318,7 +327,7 @@ elementRemove ( direction, index ) =
             (\() -> "feel")
     --> Array.fromList [ "I", "feel", "ok" ]
 
-If the index is out of range, the `Array` is unaltered.
+If the index is out of range, the `Array` is unaltered
 
     import Linear exposing (Direction(..))
     import Array
@@ -372,7 +381,7 @@ elementReplace ( direction, index ) elementReplacement =
             String.toUpper
     --> Array.fromList [ "I", "am", "OK" ]
 
-If the index is out of range, the `Array` is unaltered.
+If the index is out of range, the `Array` is unaltered
 
     import Linear exposing (Direction(..))
     import Array
@@ -405,7 +414,7 @@ elementAlter location elementAtLocationAlter =
                         (\() -> elementAtLocation |> elementAtLocationAlter)
 
 
-{-| A given number of elements from one side.
+{-| A given number of elements from one side
 
     import Linear exposing (Direction(..))
     import Array
@@ -419,7 +428,7 @@ elementAlter location elementAtLocationAlter =
         |> Array.Linear.take ( Up, 100 )
     --> Array.fromList [ 1, 2, 3 ]
 
-`Array.empty` if the amount of elements to take is negative.
+`Array.empty` if the amount of elements to take is negative
 
     import Linear exposing (Direction(..))
     import Array
@@ -429,7 +438,7 @@ elementAlter location elementAtLocationAlter =
     --> Array.empty
 
 -}
-take : ( Direction, Int ) -> Array element -> Array element
+take : ( Direction, Int ) -> (Array element -> Array element)
 take ( direction, lengthToTake ) =
     if lengthToTake > 0 then
         case direction of
@@ -447,7 +456,7 @@ take ( direction, lengthToTake ) =
         \_ -> Array.empty
 
 
-{-| Remove a given number of elements from one side.
+{-| Remove a given number of elements from one side
 
     import Linear exposing (Direction(..))
     import Array
@@ -460,7 +469,7 @@ take ( direction, lengthToTake ) =
         |> Array.Linear.drop ( Up, 100 )
     --> Array.empty
 
-Nothing is dropped if the amount of elements to drop is negative.
+Nothing is dropped if the amount of elements to drop is negative
 
     import Linear exposing (Direction(..))
     import Array
@@ -470,7 +479,7 @@ Nothing is dropped if the amount of elements to drop is negative.
     --> Array.fromList [ 1, 2, 3 ]
 
 -}
-drop : ( Direction, Int ) -> Array element -> Array element
+drop : ( Direction, Int ) -> (Array element -> Array element)
 drop ( direction, lengthToDrop ) =
     \array ->
         array
@@ -480,7 +489,8 @@ drop ( direction, lengthToDrop ) =
                 )
 
 
-{-| Attach elements of an `Array` to the end in a given [direction](https://package.elm-lang.org/packages/lue-bird/elm-linear-direction/latest/).
+{-| Attach elements of an `Array`
+to the end in a given [direction](https://package.elm-lang.org/packages/lue-bird/elm-linear-direction/latest/)
 
     import Linear exposing (Direction(..))
     import Array
@@ -494,7 +504,7 @@ drop ( direction, lengthToDrop ) =
     --> Array.fromList [ 4, 5, 6, 1, 2, 3 ]
 
 -}
-glue : Direction -> Array a -> (Array a -> Array a)
+glue : Direction -> Array element -> (Array element -> Array element)
 glue direction extension =
     \array ->
         let
@@ -565,15 +575,14 @@ padToLength directionToPadFrom paddingArrayForLength lengthMinimum =
             array
 
 
-{-| Split the `Array` into equal-`length` `chunks`.
-The left over elements to one side are in `remainder`.
+{-| Split into equal-sized `chunks` of a given length in a given [`Direction`](Linear#Direction).
+The left over elements to one side are in `remainder`
 
     import Linear exposing (Direction(..))
     import Array
 
     Array.fromList [ 1, 2, 3, 4, 5, 6, 7 ]
-        |> Array.Linear.toChunks
-            { length = 3, remainder = Up }
+        |> Array.Linear.toChunksOf Up 3
     --> { chunks =
     -->     Array.fromList
     -->         [ Array.fromList [ 1, 2, 3 ]
@@ -583,8 +592,7 @@ The left over elements to one side are in `remainder`.
     --> }
 
     Array.fromList [ 1, 2, 3, 4, 5, 6, 7 ]
-        |> Array.Linear.toChunks
-            { length = 3, remainder = Down }
+        |> Array.Linear.toChunksOf Down 3
     --> { remainder = Array.fromList [ 1 ]
     --> , chunks =
     -->     Array.fromList
@@ -594,35 +602,28 @@ The left over elements to one side are in `remainder`.
     --> }
 
 -}
-toChunks :
-    { length : Int
-    , remainder : Direction
-    }
-    -> Array element
+toChunksOf :
+    Direction
+    -> Int
     ->
-        { chunks : Array (Array element)
-        , remainder : Array element
-        }
-toChunks chunking =
-    \array ->
-        if (array |> Array.length) >= chunking.length then
-            let
-                direction =
-                    chunking.remainder
-
-                after =
-                    array
-                        |> drop ( direction, chunking.length )
-                        |> toChunks chunking
-            in
-            { after
-                | chunks =
-                    after.chunks
-                        |> insert ( direction, 0 )
-                            (\() ->
-                                array |> take ( direction, chunking.length )
-                            )
+        (Array element
+         ->
+            { chunks : Array (Array element)
+            , remainder : Array element
             }
-
-        else
-            { chunks = Array.empty, remainder = array }
+        )
+toChunksOf chunkingDirection chunkLength =
+    -- uses List.Linear.toChunksOf for better performance
+    \array ->
+        let
+            chunked =
+                array
+                    |> Array.toList
+                    |> List.Linear.toChunksOf chunkingDirection chunkLength
+        in
+        { remainder = chunked.remainder |> Array.fromList
+        , chunks =
+            chunked.chunks
+                |> List.map Array.fromList
+                |> Array.fromList
+        }
