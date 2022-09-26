@@ -5,7 +5,7 @@ module Linear exposing
     , IndexIntOutOfRange(..)
     )
 
-{-| `Up` or `Down` a structure.
+{-| `Up` or `Down` a structure
 
 @docs Direction
 
@@ -29,7 +29,7 @@ module Linear exposing
 
 {-| Either
 
-  - `Up` towards the beginning where indexes are getting bigger
+  - `Up` towards the end where indexes are getting bigger
   - `Down` towards the beginning where indexes are getting smaller
 
 -}

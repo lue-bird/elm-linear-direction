@@ -5,6 +5,10 @@
 
 # changes log
 
+#### 7.0.1
+
+  - `Linear.Direction` documentation correct
+
 ## 7.0.0
 
   - `Array.Linear` actualize changes made to other `module`s in 6.0.0
