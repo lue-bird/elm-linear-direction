@@ -9,7 +9,7 @@ module Order exposing
     , reverse
     )
 
-{-| Comparing 2 things.
+{-| Comparing 2 things
 
 @docs Ordering
 
@@ -75,7 +75,7 @@ type alias Ordering orderable =
     orderable -> orderable -> Order
 
 
-{-| `Order` `Int`s.
+{-| `Order` `Int`s
 
     Order.int 40 2
     --> GT
@@ -86,7 +86,7 @@ int =
     compare
 
 
-{-| `Order` `Char`s.
+{-| `Order` `Char`s
 
     Order.char { case_ = Order.upperLower } 'b' 'D'
     --> LT
@@ -112,7 +112,7 @@ char order =
             )
 
 
-{-| `Order` `Float`s.
+{-| `Order` `Float`s
 
     Order.float 0.1 -0.2
     --> GT
@@ -206,7 +206,7 @@ Personally, I'd just store the `String` as something like
         = TextChunked ( String, Maybe (List ( Int, String )) )
 
 and order that
-to avoid converting too often.
+to avoid converting too often
 
 -}
 string : { case_ : Ordering Case } -> Ordering String
@@ -269,7 +269,7 @@ result caseOrder =
                 GT
 
 
-{-| Order `List`s by elements first to last.
+{-| Order `List`s by elements first to last
 
     Order.list Order.int
         [ 11, 22, 33, 188 ]
@@ -290,7 +290,7 @@ list elementOrder =
         )
 
 
-{-| `Order` `Tuple.first`, then on tie `Tuple.second`.
+{-| `Order` `Tuple.first`, then on tie `Tuple.second`
 
     Order.tuple ( Order.int, Order.int ) ( 0, 2 ) ( 0, -2 )
     --> GT
@@ -440,7 +440,7 @@ by ( map, orderMapped ) =
 
 
 {-| Prioritize the [`Ordering`](#Ordering) by one aspect
-and break ties with the next.
+and break ties with the next
 
     import List.Extra as List
     import Order exposing (Ordering)
