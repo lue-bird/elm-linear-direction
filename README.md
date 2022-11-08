@@ -60,11 +60,15 @@ Array.fromList [ 'e', 'v', 'i', 'l' ]
 
 ## `Order`
 
-Build `compare` operations for basic types, records, `type` unions.
+Build `compare` operations for basic types, records, `type` choices.
 All without `comparable`, `number`, ...
 
 ```elm
 import Order exposing (Ordering)
+import Case
+import Int.Order
+import Char.Order
+import String.Order
 
 type User
     = User
@@ -75,12 +79,13 @@ type User
 
 userOrder : Ordering User
 userOrder =
-    Order.by
-        ( \(User user) -> user
-        , Order.downOnTie
-            [ Order.by ( .lastName, Order.string )
-            , Order.by ( .firstName, Order.string )
-            , Order.by ( .age, Order.int )
+    Order.by (\(User user) -> user)
+        (Order.onTieNext
+            [ Order.by .lastName
+                (String.Order.greaterEarlier (Char.Order.alphabetically Case.lowerUpper))
+            , Order.by .firstName
+                (String.Order.greaterEarlier (Char.Order.alphabetically Case.lowerUpper))
+            , Order.by .age Int.Order.increasing
             ]
         )
 

@@ -2,10 +2,14 @@ module Tests exposing (suite)
 
 import Array exposing (Array)
 import Array.Linear
+import Case
+import Char.Order
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer)
+import Int.Order
 import Linear exposing (Direction(..), IndexIntOutOfRange(..))
 import List.Linear
+import Order
 import Random
 import Test exposing (Test, test)
 
@@ -15,6 +19,30 @@ suite =
     Test.describe "linear-direction"
         [ arrayTests
         , listTests
+        , orderTests
+        ]
+
+
+orderTests : Test
+orderTests =
+    Test.describe "Order"
+        [ let
+            unicodeNonLetter : Fuzzer Char
+            unicodeNonLetter =
+                Fuzz.char
+                    |> Fuzz.filter
+                        (\c ->
+                            (c |> Char.isLower |> not) && (c |> Char.isUpper |> not)
+                        )
+          in
+          Test.fuzz
+            (Fuzz.pair unicodeNonLetter unicodeNonLetter)
+            "non-letter: Char.Order.alphabetically = Order.by Char.toCode Int.Order.increasing"
+            (\( char0, char1 ) ->
+                Char.Order.alphabetically Case.upperLower char0 char1
+                    |> Expect.equal
+                        (Order.by Char.toCode Int.Order.increasing char0 char1)
+            )
         ]
 
 

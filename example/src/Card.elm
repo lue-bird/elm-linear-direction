@@ -44,29 +44,29 @@ order =
             ( Normal normal0, Normal normal1 ) ->
                 normalOrder normal0 normal1
 
-            _ ->
+            ( cardOther0, cardOther1 ) ->
                 -- sort others according to tag "rank"
                 Order.by
-                    ( \card ->
+                    (\card ->
                         case card of
                             Normal _ ->
                                 0
 
                             Joker ->
                                 1
-                    , Order.int
                     )
-                    card0
-                    card1
+                    Int.Order.increasing
+                    cardOther0
+                    cardOther1
 
 
 
 
 normalOrder : Ordering CardNormal
 normalOrder =
-    Order.downOnTie
-        [ Order.by ( .suite, suiteOrder )
-        , Order.by ( .value, valueOrder )
+    Order.onTieNext
+        [ Order.by .suite suiteOrder
+        , Order.by .value valueOrder
         ]
 
 
@@ -96,7 +96,7 @@ type Value
 suiteOrder : Ordering Suite
 suiteOrder =
     Order.by
-        ( \suite ->
+        (\suite ->
             case suite of
                 Clubs ->
                     0
@@ -109,14 +109,14 @@ suiteOrder =
 
                 Spades ->
                     3
-        , Order.int
         )
+        Int.Order.increasing
 
 
 valueOrder : Ordering Value
 valueOrder =
     Order.by
-        ( \value ->
+        (\value ->
             case value of
                 Two ->
                     0
@@ -156,5 +156,5 @@ valueOrder =
 
                 Ace ->
                     12
-        , Order.int
         )
+        Int.Order.increasing

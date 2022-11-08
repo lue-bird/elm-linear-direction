@@ -1,9 +1,29 @@
-## 7.1.0 plans
-
-  - `Linear.directionFuzz` add
-      - waiting for `elm-test` major version 2 to not trigger a breaking change
-
 # changes log
+
+## 8.0.0
+
+  - `Linear`
+      - `directionToString` remove
+      - `directionFuzz` add
+  - `Order`
+      - `downOnTie` → `onTieNext`
+      - `by ( map, mappedOrder )` → `by map mappedOrder`
+      - `tuple` remove
+      - primitives move into respective `module X.Order` ↓
+  - `Char.Order` add
+      - `alphabetically` add
+  - `Int.Order` add
+      - `increasing` add
+      - `decreasing` add
+  - `Float.Order` add
+      - `increasing` add
+      - `decreasing` add
+  - `String.Order` add
+      - `greaterEarlier` add
+  - `List.Maybe` add
+      - `nothingJust` add
+  - `List.Order` add
+      - `greaterEarlier` add
 
 #### 7.0.1
 

@@ -7,6 +7,13 @@
     "Set.Linear",
     "Dict.Linear",
     "Order",
+    "Case",
+    "Char.Order",
+    "List.Order",
+    "String.Order",
+    "Maybe.Order",
+    "Int.Order",
+    "Float.Order",
     "./README.md"
   ]
 }

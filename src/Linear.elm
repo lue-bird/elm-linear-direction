@@ -1,7 +1,7 @@
 module Linear exposing
     ( Direction(..)
+    , directionFuzz
     , opposite
-    , directionToString
     , IndexIntOutOfRange(..)
     )
 
@@ -10,14 +10,14 @@ module Linear exposing
 @docs Direction
 
 
+## create
+
+@docs directionFuzz
+
+
 ## alter
 
 @docs opposite
-
-
-## transform
-
-@docs directionToString
 
 
 ## index
@@ -25,6 +25,8 @@ module Linear exposing
 @docs IndexIntOutOfRange
 
 -}
+
+import Fuzz exposing (Fuzzer)
 
 
 {-| Either
@@ -50,16 +52,11 @@ opposite direction =
             Up
 
 
-{-| The [direction](#Direction)'s lowercase name
+{-| [`Direction`](#Direction) `Fuzzer`
 -}
-directionToString : Direction -> String
-directionToString direction =
-    case direction of
-        Up ->
-            "up"
-
-        Down ->
-            "down"
+directionFuzz : Fuzzer Direction
+directionFuzz =
+    Fuzz.oneOfValues [ Up, Down ]
 
 
 {-| Locating an element at a given index `Int` fails if its
