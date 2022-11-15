@@ -1,6 +1,6 @@
 # 9.0.0 plans
 
-  - `elementRemove` name → `remove`
+  - `Array.Linear.elementRemove` name → `remove`
 
 # changes log
 
