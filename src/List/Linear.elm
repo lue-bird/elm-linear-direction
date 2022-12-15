@@ -1,7 +1,7 @@
 module List.Linear exposing
     ( element
-    , foldFrom, foldTrace, foldTraceFrom
     , elementAlter
+    , foldFrom, foldTrace, foldTraceFrom
     , take, drop
     , toChunksOf
     )
@@ -14,11 +14,14 @@ module List.Linear exposing
 @docs element
 
 
+## alter
+
+@docs elementAlter
+
+
 ## transform
 
 @docs foldFrom, foldTrace, foldTraceFrom
-
-@docs elementAlter
 
 
 ### part
@@ -28,7 +31,7 @@ module List.Linear exposing
 
 -}
 
-import Linear exposing (Direction(..), IndexIntOutOfRange(..))
+import Linear exposing (Direction(..))
 
 
 {-| Reduce in a [`Direction`](Linear#Direction)
@@ -321,23 +324,23 @@ drop ( directionToDropFrom, lengthToDrop ) =
 
     [ 0, 1, 2, 3 ]
         |> List.Linear.element ( Down, 0 )
-    --> Ok 3
+    --> Just 3
 
     [ 0, 1, 2, 3 ]
         |> List.Linear.element ( Up, 2 )
-    --> Ok 2
+    --> Just 2
 
-`Err` if the index is out of range:
+`Nothing` if the index is out of range:
 
-    import Linear exposing (Direction(..), IndexIntOutOfRange(..))
+    import Linear exposing (Direction(..))
 
     [ 0, 1, 2, 3 ]
         |> List.Linear.element ( Up, 5 )
-    --> Err IndexIntBeyondElements
+    --> Nothing
 
     [ 0, 1, 2, 3 ]
         |> List.Linear.element ( Up, -1 )
-    --> Err IndexIntNegative
+    --> Nothing
 
 If you're using at-operations often, consider using an `Array` instead of a `List`
 to get `O(log n)` vs. `O(n)` random access performance
@@ -347,11 +350,11 @@ element :
     ( Direction, Int )
     ->
         (List element
-         -> Result IndexIntOutOfRange element
+         -> Maybe element
         )
 element ( direction, index ) =
     if index <= -1 then
-        \_ -> IndexIntNegative |> Err
+        \_ -> Nothing
 
     else
         \list ->
@@ -368,15 +371,10 @@ element ( direction, index ) =
                             (length - 1) - index
             in
             if beforeIndexLength <= -1 then
-                IndexIntBeyondElements |> Err
+                Nothing
 
             else
-                case list |> List.drop beforeIndexLength of
-                    found :: _ ->
-                        found |> Ok
-
-                    [] ->
-                        IndexIntBeyondElements |> Err
+                list |> List.drop beforeIndexLength |> List.head
 
 
 {-| Alter the element at the given index in a [`Direction`](Linear#Direction)
@@ -394,12 +392,12 @@ Do nothing if the index is out of range
 
     [ 0, 1, 2, 3 ]
         |> List.Linear.elementAlter ( Up, 4 )
-            (\_ -> 123)
+            (\n -> n + 1)
     --> [ 0, 1, 2, 3 ]
 
     [ 0, 1, 2, 3 ]
         |> List.Linear.elementAlter ( Up, -1 )
-            (\_ -> 123)
+            (\n -> n + 1)
     --> [ 0, 1, 2, 3 ]
 
 If you're using at-operations often, consider using an `Array` instead of a `List`

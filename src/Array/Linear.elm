@@ -1,7 +1,8 @@
 module Array.Linear exposing
     ( element
     , foldFrom
-    , elementRemove, elementReplace, elementAlter, insert
+    , elementReplace, elementAlter
+    , insert, remove
     , padToLength
     , take, drop, toChunksOf
     , glue, squeezeIn
@@ -22,7 +23,8 @@ module Array.Linear exposing
 
 ### alter
 
-@docs elementRemove, elementReplace, elementAlter, insert
+@docs elementReplace, elementAlter
+@docs insert, remove
 @docs padToLength
 
 
@@ -38,7 +40,7 @@ module Array.Linear exposing
 -}
 
 import Array exposing (Array)
-import Linear exposing (Direction(..), IndexIntOutOfRange(..))
+import Linear exposing (Direction(..))
 import List.Linear
 
 
@@ -218,35 +220,35 @@ listConcat direction =
 
     Array.fromList [ "lose", "win", "lose" ]
         |> Array.Linear.element ( Down, 0 )
-    --> Ok "lose"
+    --> Just "lose"
 
     Array.fromList [ "lose", "win", "lose" ]
         |> Array.Linear.element ( Up, 0 )
-    --> Ok "lose"
+    --> Just "lose"
 
-`Err` if the index is out of range
+`Nothing` if the index is out of range
 
-    import Linear exposing (Direction(..), IndexIntOutOfRange(..))
+    import Linear exposing (Direction(..))
     import Array
 
     Array.fromList [ 1, 2, 3 ]
         |> Array.Linear.element ( Up, -1 )
-    --> Err IndexIntNegative
+    --> Nothing
 
     Array.fromList [ 1, 2, 3 ]
         |> Array.Linear.element ( Up, 100 )
-    --> Err IndexIntBeyondElements
+    --> Nothing
 
 -}
 element :
     ( Direction, Int )
     ->
         (Array element
-         -> Result IndexIntOutOfRange element
+         -> Maybe element
         )
 element ( direction, index ) =
     if index <= -1 then
-        \_ -> IndexIntNegative |> Err
+        \_ -> Nothing
 
     else
         \array ->
@@ -262,9 +264,7 @@ element ( direction, index ) =
                         Down ->
                             (length - 1) - index
             in
-            array
-                |> Array.get indexUp
-                |> Result.fromMaybe IndexIntBeyondElements
+            array |> Array.get indexUp
 
 
 {-| Kick an element out at a given index in a [`Direction`](Linear#Direction)
@@ -273,11 +273,11 @@ element ( direction, index ) =
     import Array
 
     Array.fromList [ 'a', 'a', 'b' ]
-        |> Array.Linear.elementRemove ( Up, 1 )
+        |> Array.Linear.remove ( Up, 1 )
     --> Array.fromList [ 'a', 'b' ]
 
     Array.fromList [ 'a', 'b', 'c', 'd' ]
-        |> Array.Linear.elementRemove ( Down, 0 )
+        |> Array.Linear.remove ( Down, 0 )
     --> Array.fromList [ 'a', 'b', 'c' ]
 
 If the index is out of bounds, nothing is changed
@@ -286,21 +286,21 @@ If the index is out of bounds, nothing is changed
     import Array
 
     Array.fromList [ 'a', 'a', 'b' ]
-        |> Array.Linear.elementRemove ( Up, -1 )
+        |> Array.Linear.remove ( Up, -1 )
     --> Array.fromList [ 'a', 'a', 'b' ]
 
     Array.fromList [ 'a', 'a', 'b' ]
-        |> Array.Linear.elementRemove ( Up, 100 )
+        |> Array.Linear.remove ( Up, 100 )
     --> Array.fromList [ 'a', 'a', 'b' ]
 
 -}
-elementRemove :
+remove :
     ( Direction, Int )
     ->
         (Array element
          -> Array element
         )
-elementRemove ( direction, index ) =
+remove ( direction, index ) =
     if index >= 0 then
         \array ->
             listConcat direction
@@ -366,7 +366,7 @@ elementReplace ( direction, index ) elementReplacement =
             array
 
 
-{-| Set the element at an index in a [`Direction`](Linear#Direction)
+{-| Change the element at an index in a [`Direction`](Linear#Direction)
 
     import Linear exposing (Direction(..))
     import Array
@@ -402,13 +402,10 @@ elementAlter :
 elementAlter location elementAtLocationAlter =
     \array ->
         case array |> element location of
-            Err IndexIntBeyondElements ->
+            Nothing ->
                 array
 
-            Err IndexIntNegative ->
-                array
-
-            Ok elementAtLocation ->
+            Just elementAtLocation ->
                 array
                     |> elementReplace location
                         (\() -> elementAtLocation |> elementAtLocationAlter)

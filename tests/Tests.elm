@@ -2,14 +2,10 @@ module Tests exposing (suite)
 
 import Array exposing (Array)
 import Array.Linear
-import Case
-import Char.Order
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer)
-import Int.Order
-import Linear exposing (Direction(..), IndexIntOutOfRange(..))
+import Linear exposing (Direction(..))
 import List.Linear
-import Order
 import Random
 import Test exposing (Test, test)
 
@@ -19,30 +15,6 @@ suite =
     Test.describe "linear-direction"
         [ arrayTests
         , listTests
-        , orderTests
-        ]
-
-
-orderTests : Test
-orderTests =
-    Test.describe "Order"
-        [ let
-            unicodeNonLetter : Fuzzer Char
-            unicodeNonLetter =
-                Fuzz.char
-                    |> Fuzz.filter
-                        (\c ->
-                            (c |> Char.isLower |> not) && (c |> Char.isUpper |> not)
-                        )
-          in
-          Test.fuzz
-            (Fuzz.pair unicodeNonLetter unicodeNonLetter)
-            "non-letter: Char.Order.alphabetically = Order.by Char.toCode Int.Order.increasing"
-            (\( char0, char1 ) ->
-                Char.Order.alphabetically Case.upperLower char0 char1
-                    |> Expect.equal
-                        (Order.by Char.toCode Int.Order.increasing char0 char1)
-            )
         ]
 
 
@@ -132,7 +104,7 @@ listTests =
                                     List.reverse
                     in
                     list
-                        |> List.map Ok
+                        |> List.map Just
                         |> Expect.equalLists
                             (List.range 0 ((list |> List.length) - 1)
                                 |> reverseIfLastToFirst
@@ -157,7 +129,7 @@ listTests =
                         |> List.Linear.element
                             ( direction, (list |> List.length) + above )
                         |> Expect.equal
-                            (Err IndexIntBeyondElements)
+                            Nothing
                 )
             , Test.fuzz
                 (Fuzz.constant
@@ -168,12 +140,12 @@ listTests =
                     |> Fuzz.andMap linearDirectionFuzz
                     |> Fuzz.andMap (Fuzz.intRange Random.minInt -1)
                 )
-                "index negative → Err IndexIntNegative"
+                "index negative → Nothing"
                 (\{ list, direction, index } ->
                     list
                         |> List.Linear.element ( direction, index )
                         |> Expect.equal
-                            (Err IndexIntNegative)
+                            Nothing
                 )
             ]
         , Test.describe "alter"
@@ -254,7 +226,7 @@ arrayTests =
                                     length - 1 - index
                     in
                     array
-                        |> Array.map Ok
+                        |> Array.map Just
                         |> expectEqualArrays
                             (Array.initialize
                                 length
@@ -278,7 +250,7 @@ arrayTests =
                     array
                         |> Array.Linear.element ( direction, length )
                         |> Expect.equal
-                            (Err IndexIntBeyondElements)
+                            Nothing
                 )
             , Test.fuzz
                 (Fuzz.constant
@@ -294,7 +266,7 @@ arrayTests =
                     array
                         |> Array.Linear.element ( direction, index )
                         |> Expect.equal
-                            (Err IndexIntNegative)
+                            Nothing
                 )
             ]
         , Test.describe "elementReplace"
@@ -480,7 +452,7 @@ arrayTests =
             [ test "Up → removes the element at the index"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.elementRemove
+                        |> Array.Linear.remove
                             ( Up, 2 )
                         |> expectEqualArrays
                             (Array.fromList [ 1, 2, 4 ])
@@ -488,7 +460,7 @@ arrayTests =
             , test "Down → removes the element at the index"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
-                        |> Array.Linear.elementRemove
+                        |> Array.Linear.remove
                             ( Down, 1 )
                         |> expectEqualArrays
                             (Array.fromList [ 1, 2, 4 ])

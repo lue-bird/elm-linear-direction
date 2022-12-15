@@ -1,8 +1,11 @@
-# 9.0.0 plans
-
-  - `Array.Linear.elementRemove` name → `remove`
-
 # changes log
+
+# 9.0.0
+
+  - `Linear.IndexIntOutOfRange` remove
+      - results are now `Nothing`
+  - `Array.Linear.elementRemove` name → `remove`
+  - `module ....Order` move into `lue-bird/elm-keysset`
 
 ## 8.0.0
 

@@ -1,13 +1,15 @@
 ## [linear direction](https://dark.elm.dmy.fr/packages/lue-bird/elm-linear-direction/latest/)
 
-  - `foldr`, `foldl`: does `foldr` mean fold right? A quite unclear name
-  - no `Array.getr/l`, `setr/l` but `foldr`, `foldl`?
+  - `-r`/`-l`
+      - for example: `foldr`, `foldl`
+      - does `foldr` mean fold to the right? unclear and easy to mix up
+      - no `Array.getr/l`, `setr/l` but `foldr`, `foldl`?
   - negative indices
       - `Array.slice 0 -1` is handy! But you can't do `slice 2 -0`
       - many operations support negative indices, but others don't
       - not explicit → can have unintended side-effects
 
-Better use the **[`Direction`](Linear#Direction) as an argument**!
+How about taking the **[`Direction`](Linear#Direction) as an argument**!
 
 ```elm
 import Linear exposing (Direction(..))
@@ -25,7 +27,7 @@ import Array.Linear
 
 Array.fromList [ 'e', 'v', 'i', 'l' ]
     |> Array.Linear.element ( Down, 0 )
---> Ok 'l'
+--> Just 'l'
 ```
 
   - → a less cluttered API, e.g.
@@ -40,17 +42,17 @@ Array.fromList [ 'e', 'v', 'i', 'l' ]
     import Array exposing (Array)
     import Array.Linear
 
-    alter :
+    elementAlter :
         ( DirectionLinear, Int )
         -> (element -> element)
         -> (Array element -> Array element)
-    alter location alter =
+    elementAlter location alter =
         \array ->
             case array |> Array.Linear.element location of
-                Err _ ->
+                Nothing ->
                     array
                     
-                Ok elementAtLocation ->
+                Just elementAtLocation ->
                     array
                         |> Array.Linear.elementReplace location
                             (\() -> elementAtLocation |> alter)
@@ -58,56 +60,11 @@ Array.fromList [ 'e', 'v', 'i', 'l' ]
 
   - → direction is always explicit
 
-## `Order`
-
-Build `compare` operations for basic types, records, `type` choices.
-All without `comparable`, `number`, ...
-
-```elm
-import Order exposing (Ordering)
-import Case
-import Int.Order
-import Char.Order
-import String.Order
-
-type User
-    = User
-        { firstName : String
-        , lastName : String
-        , age : Int
-        }
-
-userOrder : Ordering User
-userOrder =
-    Order.by (\(User user) -> user)
-        (Order.onTieNext
-            [ Order.by .lastName
-                (String.Order.greaterEarlier (Char.Order.alphabetically Case.lowerUpper))
-            , Order.by .firstName
-                (String.Order.greaterEarlier (Char.Order.alphabetically Case.lowerUpper))
-            , Order.by .age Int.Order.increasing
-            ]
-        )
-
-[ User { firstName = "Andy", lastName = "Baldwin", age = 90 }
-, User { firstName = "Bert", lastName = "Anderson", age = 23 }
-, User { firstName = "Alec", lastName = "Anderson", age = 8 }
-, User { firstName = "Alec", lastName = "Anderson", age = 100 }
-]
-    |> List.sortWith userOrder
---> [ { firstName = "Alec", lastName = "Anderson", age = 8 }
---> , { firstName = "Alec", lastName = "Anderson", age = 100 }
---> , { firstName = "Bert", lastName = "Anderson", age = 23 }
---> , { firstName = "Andy", lastName = "Baldwin", age = 90 }
---> ]
-```
-
-[↑ other examples](https://github.com/lue-bird/elm-linear-direction/blob/master/example/src/Card.elm)
-
 ## where `linear direction` is already being used
 
   - [`emptiness-typed`](https://dark.elm.dmy.fr/packages/lue-bird/elm-emptiness-typed/latest/)
   - [`typesafe-array`](https://dark.elm.dmy.fr/packages/lue-bird/elm-typesafe-array/latest/)
+  - [`keysset`](https://dark.elm.dmy.fr/packages/lue-bird/elm-keysset/latest/)
   - [`rosetree-path`](https://dark.elm.dmy.fr/packages/lue-bird/elm-rosetree-path/latest/)
 
 ## suggestions?

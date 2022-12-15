@@ -2,7 +2,6 @@ module Linear exposing
     ( Direction(..)
     , directionFuzz
     , opposite
-    , IndexIntOutOfRange(..)
     )
 
 {-| `Up` or `Down` a structure
@@ -18,11 +17,6 @@ module Linear exposing
 ## alter
 
 @docs opposite
-
-
-## index
-
-@docs IndexIntOutOfRange
 
 -}
 
@@ -57,14 +51,3 @@ opposite direction =
 directionFuzz : Fuzzer Direction
 directionFuzz =
     Fuzz.oneOfValues [ Up, Down ]
-
-
-{-| Locating an element at a given index `Int` fails if its
-
-  - `<= -1`
-  - `>=` the structure's length
-
--}
-type IndexIntOutOfRange
-    = IndexIntNegative
-    | IndexIntBeyondElements

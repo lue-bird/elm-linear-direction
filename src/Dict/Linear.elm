@@ -7,6 +7,8 @@ module Dict.Linear exposing (foldFrom)
 
 @docs foldFrom
 
+To allow any key, try [`KeySet`](https://dark.elm.dmy.fr/packages/lue-bird/elm-keysset/latest/KeySet)
+
 -}
 
 import Dict exposing (Dict)
