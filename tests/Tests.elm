@@ -448,7 +448,7 @@ arrayTests =
                             array
                 )
             ]
-        , Test.describe "elementRemove"
+        , Test.describe "remove"
             [ test "Up → removes the element at the index"
                 (\() ->
                     Array.fromList [ 1, 2, 3, 4 ]
