@@ -44,7 +44,8 @@ import Linear exposing (Direction(..))
 import List.Linear
 
 
-{-| Reduce in a [`Direction`](Linear#Direction)
+{-| Reduce in a given [`Direction`](Linear#Direction)
+from a given initial accumulated thing
 
     import Linear exposing (Direction(..))
     import Array
@@ -79,7 +80,8 @@ foldFrom accumulationValueInitial direction reduce =
     \array -> array |> fold reduce accumulationValueInitial
 
 
-{-| Put in a given element at a given index in a [`Direction`](Linear#Direction)
+{-| Put in a given element at a given index
+in a given [`Direction`](Linear#Direction)
 
     import Linear exposing (Direction(..))
     import Array
@@ -126,7 +128,8 @@ insert ( direction, index ) elementToInsert =
                 (\unit -> Array.fromList [ elementToInsert unit ])
 
 
-{-| Put elements of a given `Array` between the elements left and right to the given index in a [`Direction`](Linear#Direction)
+{-| Put elements of a given `Array` between the elements left and right
+to the given index in a given [`Direction`](Linear#Direction)
 
     import Linear exposing (Direction(..))
     import Array
@@ -179,7 +182,7 @@ squeezeIn ( direction, index ) arrayToSqueezeIn =
             array
 
 
-{-| Append a `List` of `Array`s in a [`Direction`](Linear#Direction)
+{-| Append a `List` of `Array`s in a given [`Direction`](Linear#Direction)
 
     import Linear exposing (Direction(..))
     import Array
@@ -213,7 +216,7 @@ listConcat direction =
                 (\current soFar -> Array.append soFar current)
 
 
-{-| The element at a given index in a [`Direction`](Linear#Direction)
+{-| The element at a given index in a given [`Direction`](Linear#Direction)
 
     import Linear exposing (Direction(..))
     import Array
@@ -267,7 +270,8 @@ element ( direction, index ) =
             array |> Array.get indexUp
 
 
-{-| Kick an element out at a given index in a [`Direction`](Linear#Direction)
+{-| Kick an element out at a given index
+in a given [`Direction`](Linear#Direction)
 
     import Linear exposing (Direction(..))
     import Array
@@ -312,7 +316,7 @@ remove ( direction, index ) =
         identity
 
 
-{-| Set the element at an index in a [`Direction`](Linear#Direction)
+{-| Set the element at a given index in a given [`Direction`](Linear#Direction)
 
     import Linear exposing (Direction(..))
     import Array
@@ -366,7 +370,7 @@ elementReplace ( direction, index ) elementReplacement =
             array
 
 
-{-| Change the element at an index in a [`Direction`](Linear#Direction)
+{-| Change the element at a given index in a given [`Direction`](Linear#Direction)
 
     import Linear exposing (Direction(..))
     import Array
@@ -412,6 +416,7 @@ elementAlter location elementAtLocationAlter =
 
 
 {-| A given number of elements from one side
+in a given [`Direction`](Linear#Direction)
 
     import Linear exposing (Direction(..))
     import Array
