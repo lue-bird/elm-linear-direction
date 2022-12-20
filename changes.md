@@ -1,6 +1,13 @@
 # changes log
 
-# 9.0.0
+## 10.0.0
+
+  - `Array.Linear`
+      - `glue` name → `attach`
+  - `take ( dir, length )`, `drop ( dir, length )`
+    → `take dir length`, `drop dir length`
+
+## 9.0.0
 
   - `Linear.IndexIntOutOfRange` remove
       - results are now `Nothing`
