@@ -48,7 +48,7 @@ listTests =
                 (\after ->
                     [ 123456, 1234 ]
                         ++ after
-                        |> List.Linear.take ( Up, 2 )
+                        |> List.Linear.take Up 2
                         |> Expect.equalLists
                             [ 123456, 1234 ]
                 )
@@ -58,7 +58,7 @@ listTests =
                 (\before ->
                     before
                         ++ [ 123456, 1234 ]
-                        |> List.Linear.take ( Down, 2 )
+                        |> List.Linear.take Down 2
                         |> Expect.equalLists
                             [ 123456, 1234 ]
                 )
@@ -70,7 +70,7 @@ listTests =
                 (\list ->
                     list
                         ++ [ 123456, 1234 ]
-                        |> List.Linear.drop ( Up, list |> List.length )
+                        |> List.Linear.drop Up (list |> List.length)
                         |> Expect.equalLists
                             [ 123456, 1234 ]
                 )
@@ -80,7 +80,7 @@ listTests =
                 (\list ->
                     [ 123456, 1234 ]
                         ++ list
-                        |> List.Linear.drop ( Down, list |> List.length )
+                        |> List.Linear.drop Down (list |> List.length)
                         |> Expect.equalLists
                             [ 123456, 1234 ]
                 )
@@ -531,11 +531,11 @@ arrayTests =
                     |> Fuzz.andMap (Fuzz.array Fuzz.int)
                     |> Fuzz.andMap linearDirectionFuzz
                 )
-                "glue-ing anything, then taking the original length → identity"
+                "attaching anything, then taking the original length → identity"
                 (\{ extension, direction, array } ->
                     array
-                        |> Array.Linear.glue direction extension
-                        |> Array.Linear.take ( direction, array |> Array.length )
+                        |> Array.Linear.attach direction extension
+                        |> Array.Linear.take direction (array |> Array.length)
                         |> expectEqualArrays
                             array
                 )
@@ -550,14 +550,13 @@ arrayTests =
                     |> Fuzz.andMap (Fuzz.array Fuzz.int)
                     |> Fuzz.andMap linearDirectionFuzz
                 )
-                "glue-ing anything, then dropping the extension length → identity"
+                "attaching anything, then dropping the extension length → identity"
                 (\{ extension, direction, array } ->
                     array
-                        |> Array.Linear.glue direction extension
+                        |> Array.Linear.attach direction extension
                         |> Array.Linear.drop
-                            ( direction |> Linear.opposite
-                            , extension |> Array.length
-                            )
+                            (direction |> Linear.opposite)
+                            (extension |> Array.length)
                         |> expectEqualArrays
                             array
                 )
@@ -565,20 +564,20 @@ arrayTests =
                 [ test "Up"
                     (\() ->
                         Array.fromList [ 1, 2, 3, 4 ]
-                            |> Array.Linear.drop ( Up, 1 )
+                            |> Array.Linear.drop Up 1
                             |> expectEqualArrays
                                 (Array.fromList [ 2, 3, 4 ])
                     )
                 , test "Down"
                     (\() ->
                         Array.fromList [ 1, 2, 3, 4 ]
-                            |> Array.Linear.drop ( Down, 1 )
+                            |> Array.Linear.drop Down 1
                             |> expectEqualArrays
                                 (Array.fromList [ 1, 2, 3 ])
                     )
                 ]
             ]
-        , Test.describe "glue"
+        , Test.describe "attach"
             [ Test.fuzz
                 (Fuzz.constant
                     (\array extension ->
@@ -590,7 +589,7 @@ arrayTests =
                 "Up"
                 (\{ array, extension } ->
                     array
-                        |> Array.Linear.glue Up extension
+                        |> Array.Linear.attach Up extension
                         |> expectEqualArrays
                             (Array.append array extension)
                 )
@@ -605,7 +604,7 @@ arrayTests =
                 "Down"
                 (\{ array, extension } ->
                     array
-                        |> Array.Linear.glue Down extension
+                        |> Array.Linear.attach Down extension
                         |> expectEqualArrays
                             (Array.append extension array)
                 )

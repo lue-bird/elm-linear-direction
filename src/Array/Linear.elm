@@ -5,7 +5,7 @@ module Array.Linear exposing
     , insert, remove
     , padToLength
     , take, drop, toChunksOf
-    , glue, squeezeIn
+    , attach, squeezeIn
     )
 
 {-| `Array` operations that can be applied in either [`Direction`](Linear#Direction)
@@ -35,7 +35,7 @@ module Array.Linear exposing
 
 ### glueing
 
-@docs glue, squeezeIn
+@docs attach, squeezeIn
 
 -}
 
@@ -173,9 +173,9 @@ squeezeIn ( direction, index ) arrayToSqueezeIn =
     \array ->
         if index >= 0 && index <= (array |> Array.length) then
             listConcat direction
-                [ array |> take ( direction, index )
+                [ array |> take direction index
                 , arrayToSqueezeIn ()
-                , array |> drop ( direction, index )
+                , array |> drop direction index
                 ]
 
         else
@@ -308,8 +308,8 @@ remove ( direction, index ) =
     if index >= 0 then
         \array ->
             listConcat direction
-                [ array |> take ( direction, index )
-                , array |> drop ( direction, index + 1 )
+                [ array |> take direction index
+                , array |> drop direction (index + 1)
                 ]
 
     else
@@ -422,26 +422,26 @@ in a given [`Direction`](Linear#Direction)
     import Array
 
     Array.fromList [ 1, 2, 3, 4, 5, 6 ]
-        |> Array.Linear.take ( Up, 4 )
-        |> Array.Linear.take ( Down, 2 )
+        |> Array.Linear.take Up 4
+        |> Array.Linear.take Down 2
     --> Array.fromList [ 3, 4 ]
 
     Array.fromList [ 1, 2, 3 ]
-        |> Array.Linear.take ( Up, 100 )
+        |> Array.Linear.take Up 100
     --> Array.fromList [ 1, 2, 3 ]
 
-`Array.empty` if the amount of elements to take is negative
+The amount of elements to take is negative? → `Array.empty`
 
     import Linear exposing (Direction(..))
     import Array
 
     Array.fromList [ 1, 2, 3 ]
-        |> Array.Linear.take ( Up, -100 )
+        |> Array.Linear.take Up -100
     --> Array.empty
 
 -}
-take : ( Direction, Int ) -> (Array element -> Array element)
-take ( direction, lengthToTake ) =
+take : Direction -> Int -> (Array element -> Array element)
+take direction lengthToTake =
     if lengthToTake > 0 then
         case direction of
             Up ->
@@ -464,11 +464,11 @@ take ( direction, lengthToTake ) =
     import Array
 
     Array.fromList [ 1, 2, 3, 4, 5, 6 ]
-        |> Array.Linear.drop ( Down, 2 )
+        |> Array.Linear.drop Down 2
     --> Array.fromList [ 1, 2, 3, 4 ]
 
     Array.fromList [ 1, 2, 3 ]
-        |> Array.Linear.drop ( Up, 100 )
+        |> Array.Linear.drop Up 100
     --> Array.empty
 
 Nothing is dropped if the amount of elements to drop is negative
@@ -477,37 +477,36 @@ Nothing is dropped if the amount of elements to drop is negative
     import Array
 
     Array.fromList [ 1, 2, 3 ]
-        |> Array.Linear.drop ( Up, -1 )
+        |> Array.Linear.drop Up -1
     --> Array.fromList [ 1, 2, 3 ]
 
 -}
-drop : ( Direction, Int ) -> (Array element -> Array element)
-drop ( direction, lengthToDrop ) =
+drop : Direction -> Int -> (Array element -> Array element)
+drop direction lengthToDrop =
     \array ->
         array
             |> take
-                ( direction |> Linear.opposite
-                , (array |> Array.length) - lengthToDrop
-                )
+                (direction |> Linear.opposite)
+                ((array |> Array.length) - lengthToDrop)
 
 
-{-| Attach elements of an `Array`
+{-| Attach elements of a given `Array`
 to the end in a given [direction](https://package.elm-lang.org/packages/lue-bird/elm-linear-direction/latest/)
 
     import Linear exposing (Direction(..))
     import Array
 
     Array.fromList [ 1, 2, 3 ]
-        |> Array.Linear.glue Up (Array.fromList [ 4, 5, 6 ])
+        |> Array.Linear.attach Up (Array.fromList [ 4, 5, 6 ])
     --> Array.fromList [ 1, 2, 3, 4, 5, 6 ]
 
     Array.fromList [ 1, 2, 3 ]
-        |> Array.Linear.glue Down (Array.fromList [ 4, 5, 6 ])
+        |> Array.Linear.attach Down (Array.fromList [ 4, 5, 6 ])
     --> Array.fromList [ 4, 5, 6, 1, 2, 3 ]
 
 -}
-glue : Direction -> Array element -> (Array element -> Array element)
-glue direction extension =
+attach : Direction -> Array element -> (Array element -> Array element)
+attach direction extension =
     \array ->
         let
             ( left, right ) =
@@ -545,14 +544,14 @@ glue direction extension =
         |> Array.Linear.padToLength Up
             (\l -> Array.repeat l 0)
             2
-        |> Array.Linear.take ( Up, 2 )
+        |> Array.Linear.take Up 2
     --> Array.fromList [ 1, 2 ]
 
     Array.fromList [ 1, 2, 3 ]
         |> Array.Linear.padToLength Down
             (\l -> Array.repeat l 0)
             2
-        |> Array.Linear.take ( Down, 2 )
+        |> Array.Linear.take Down 2
     --> Array.fromList [ 2, 3 ]
 
 -}
@@ -571,7 +570,7 @@ padToLength directionToPadFrom paddingArrayForLength lengthMinimum =
                 lengthMinimum - (array |> Array.length)
         in
         if paddingLength >= 0 then
-            array |> glue directionToPadFrom (paddingArrayForLength paddingLength)
+            array |> attach directionToPadFrom (paddingArrayForLength paddingLength)
 
         else
             array

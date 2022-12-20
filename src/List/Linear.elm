@@ -35,6 +35,7 @@ import Linear exposing (Direction(..))
 
 
 {-| Reduce in a [`Direction`](Linear#Direction)
+from a given initial accumulated thing
 
     import Linear exposing (Direction(..))
 
@@ -259,11 +260,11 @@ toChunksOf chunkingDirection chunkLength =
     import Linear exposing (Direction(..))
 
     [ 1, 2, 3, 4 ]
-        |> List.Linear.take ( Up,2 )
+        |> List.Linear.take Up 2
     --> [ 1, 2 ]
 
     [ 1, 2, 3, 4 ]
-        |> List.Linear.take ( Down, 2 )
+        |> List.Linear.take Down 2
     --> [ 3, 4 ]
 
 `[]` if the amount of elements to take is negative
@@ -271,12 +272,12 @@ toChunksOf chunkingDirection chunkLength =
     import Linear exposing (Direction(..))
 
     [ 1, 2, 3 ]
-        |> List.Linear.take ( Up, -100 )
+        |> List.Linear.take Up -100
     --> []
 
 -}
-take : ( Direction, Int ) -> (List element -> List element)
-take ( directionToTakeFrom, lengthToTake ) =
+take : Direction -> Int -> (List element -> List element)
+take directionToTakeFrom lengthToTake =
     case directionToTakeFrom of
         Up ->
             \list -> list |> List.take lengthToTake
@@ -292,22 +293,22 @@ take ( directionToTakeFrom, lengthToTake ) =
     import Linear exposing (Direction(..))
 
     removeFirst =
-        List.Linear.drop ( Up, 0 )
+        List.Linear.drop Up 0
 
     removeLast =
-        List.Linear.drop ( Down, 0 )
+        List.Linear.drop Down 0
 
 Nothing is dropped if the amount of elements to drop is negative
 
     import Linear exposing (Direction(..))
 
     [ 1, 2, 3 ]
-        |> List.Linear.drop ( Up, -1 )
+        |> List.Linear.drop Up -1
     --> [ 1, 2, 3 ]
 
 -}
-drop : ( Direction, Int ) -> (List element -> List element)
-drop ( directionToDropFrom, lengthToDrop ) =
+drop : Direction -> Int -> (List element -> List element)
+drop directionToDropFrom lengthToDrop =
     case directionToDropFrom of
         Up ->
             \list -> list |> List.drop lengthToDrop

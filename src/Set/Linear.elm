@@ -7,7 +7,7 @@ module Set.Linear exposing (foldFrom)
 
 @docs foldFrom
 
-To allow any key, try [`KeySet`](https://dark.elm.dmy.fr/packages/lue-bird/elm-keysset/latest/KeySet)
+To allow any key, try [`elm-keysset`](https://dark.elm.dmy.fr/packages/lue-bird/elm-keysset/latest/)
 
 -}
 
@@ -16,6 +16,7 @@ import Set exposing (Set)
 
 
 {-| Reduce in a [`Direction`](Linear#Direction)
+from a given initial accumulated thing
 
     import Linear exposing (Direction(..))
     import Set
