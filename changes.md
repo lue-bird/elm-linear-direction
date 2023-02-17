@@ -4,6 +4,7 @@
 
   - `Array.Linear`
       - `mapFoldFrom` add
+      - `padToLength dir pad length` → `padToAtLeast dir length pad`
   - `List.Linear`
       - `foldTrace`, `foldTraceFrom` remove
           - in favor of `mapFoldFrom`

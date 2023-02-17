@@ -635,16 +635,16 @@ arrayTests =
                             }
                 )
             ]
-        , Test.describe "padToLength"
+        , Test.describe "padToAtLeast"
             [ Test.describe "lengthMinimum > current length"
                 [ Test.fuzz
                     (Fuzz.array Fuzz.int)
                     "Up"
                     (\array ->
                         array
-                            |> Array.Linear.padToLength Up
-                                (\l -> Array.repeat l 0)
+                            |> Array.Linear.padToAtLeast Up
                                 ((array |> Array.length) + 2)
+                                (\l -> Array.repeat l 0)
                             |> expectEqualArrays
                                 (Array.append array (Array.repeat 2 0))
                     )
@@ -653,9 +653,9 @@ arrayTests =
                     "Down"
                     (\array ->
                         array
-                            |> Array.Linear.padToLength Down
-                                (\l -> Array.repeat l 0)
+                            |> Array.Linear.padToAtLeast Down
                                 ((array |> Array.length) + 2)
+                                (\l -> Array.repeat l 0)
                             |> expectEqualArrays
                                 (Array.append (Array.repeat 2 0) array)
                     )
@@ -673,9 +673,9 @@ arrayTests =
                             (array |> Array.length) - 2
                     in
                     array
-                        |> Array.Linear.padToLength direction
-                            (\l -> Array.repeat l 0)
+                        |> Array.Linear.padToAtLeast direction
                             lengthShortened
+                            (\l -> Array.repeat l 0)
                         |> expectEqualArrays
                             array
                 )
@@ -691,9 +691,9 @@ arrayTests =
                 "lengthMinimum negative → identity"
                 (\{ array, direction, length } ->
                     array
-                        |> Array.Linear.padToLength direction
-                            (\l -> Array.repeat l 0)
+                        |> Array.Linear.padToAtLeast direction
                             length
+                            (\l -> Array.repeat l 0)
                         |> expectEqualArrays
                             array
                 )

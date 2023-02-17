@@ -3,7 +3,7 @@ module Array.Linear exposing
     , foldFrom, mapFoldFrom
     , elementReplace, elementAlter
     , insert, remove
-    , padToLength
+    , padToAtLeast
     , take, drop, toChunksOf
     , attach, squeezeIn
     )
@@ -25,7 +25,7 @@ module Array.Linear exposing
 
 @docs elementReplace, elementAlter
 @docs insert, remove
-@docs padToLength
+@docs padToAtLeast
 
 
 ### part
@@ -610,44 +610,44 @@ attach direction extension =
     import Array
 
     Array.fromList [ 1, 2 ]
-        |> Array.Linear.padToLength Up
-            (\l -> Array.repeat l 0)
+        |> Array.Linear.padToAtLeast Up
             4
+            (\l -> Array.repeat l 0)
     --> Array.fromList [ 1, 2, 0, 0 ]
 
     Array.fromList [ 1, 2 ]
-        |> Array.Linear.padToLength Down
-            (\l -> Array.repeat l 0)
+        |> Array.Linear.padToAtLeast Down
             4
+            (\l -> Array.repeat l 0)
     --> Array.fromList [ 0, 0, 1, 2 ]
 
-`padToLength direction ... length |> take ( direction, length )`
+`padToAtLeast direction ... length |> take ( direction, length )`
 → **"resize"** behavior
 
     Array.fromList [ 1, 2, 3 ]
-        |> Array.Linear.padToLength Up
-            (\l -> Array.repeat l 0)
+        |> Array.Linear.padToAtLeast Up
             2
+            (\l -> Array.repeat l 0)
         |> Array.Linear.take Up 2
     --> Array.fromList [ 1, 2 ]
 
     Array.fromList [ 1, 2, 3 ]
-        |> Array.Linear.padToLength Down
-            (\l -> Array.repeat l 0)
+        |> Array.Linear.padToAtLeast Down
             2
+            (\l -> Array.repeat l 0)
         |> Array.Linear.take Down 2
     --> Array.fromList [ 2, 3 ]
 
 -}
-padToLength :
+padToAtLeast :
     Direction
-    -> (Int -> Array element)
     -> Int
+    -> (Int -> Array element)
     ->
         (Array element
          -> Array element
         )
-padToLength directionToPadFrom paddingArrayForLength lengthMinimum =
+padToAtLeast directionToPadFrom lengthMinimum paddingArrayForLength =
     \array ->
         let
             paddingLength =

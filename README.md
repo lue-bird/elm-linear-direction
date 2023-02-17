@@ -33,7 +33,7 @@ Array.fromList [ 'e', 'v', 'i', 'l' ]
   - → a less cluttered API, e.g.
       - `foldFrom` instead of `foldr`, `foldl`
       - `toChunksOf` instead of [`chunksFromLeft`/-`Right`](https://package.elm-lang.org/packages/elm-community/list-split/latest/List-Split)
-      - `padToLength` instead of `resizerRepeat`, `resizelRepeat`, `resizerIndexed`, `resizelIndexed`
+      - `padToAtLeast` instead of `resizerRepeat`, `resizelRepeat`, `resizerIndexed`, `resizelIndexed`
 
   - → deal with both directions at once
 
