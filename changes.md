@@ -1,5 +1,14 @@
 # changes log
 
+## 11.0.0
+
+  - `Array.Linear`
+      - `mapFoldFrom` add
+  - `List.Linear`
+      - `foldTrace`, `foldTraceFrom` remove
+          - in favor of `mapFoldFrom`
+      - `mapFoldFrom` add
+
 ## 10.0.0
 
   - `Array.Linear`

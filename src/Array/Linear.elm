@@ -1,6 +1,6 @@
 module Array.Linear exposing
     ( element
-    , foldFrom
+    , foldFrom, mapFoldFrom
     , elementReplace, elementAlter
     , insert, remove
     , padToLength
@@ -18,7 +18,7 @@ module Array.Linear exposing
 
 ## transform
 
-@docs foldFrom
+@docs foldFrom, mapFoldFrom
 
 
 ### alter
@@ -78,6 +78,90 @@ foldFrom accumulationValueInitial direction reduce =
                     Array.foldr
     in
     \array -> array |> fold reduce accumulationValueInitial
+
+
+{-| Map each element using information collected from previous steps,
+folding in a given [`Direction`](Linear#Direction) from given initial information.
+
+Both the mapped `Array` and the folded information will be returned
+
+You'll often find this under the name "mapAccum"
+
+    import Linear exposing (Direction(..))
+    import Array exposing (Array)
+
+    Array.fromList [ 1, 2, 3 ]
+        |> Array.Linear.mapFoldFrom 0
+            Down
+            (\state ->
+                { element = state.folded
+                , folded = state.folded + state.element
+                }
+            )
+    --> { mapped = Array.fromList [ 5, 3, 0 ], folded = 6 }
+
+    mapIndexed : Direction -> (Int -> a -> b) -> (Array a -> Array b)
+    mapIndexed indexDirection mapAtIndex =
+        Array.Linear.mapFoldFrom 0
+            indexDirection
+            (\state ->
+                { element = state.element |> mapAtIndex state.folded
+                , folded = state.folded + 1
+                }
+            )
+            >> .mapped
+
+    Array.fromList [ 'h', 'i', 'y', 'o' ]
+        |> mapIndexed Up Tuple.pair
+    --> Array.fromList [ ( 0, 'h' ), ( 1, 'i' ), ( 2, 'y' ), ( 3, 'o' ) ]
+
+    Array.fromList [ 'h', 'i', 'y', 'o' ]
+        |> mapIndexed Down Tuple.pair
+    --> Array.fromList [ ( 3, 'h' ), ( 2, 'i' ), ( 1, 'y' ), ( 0, 'o' ) ]
+
+-}
+mapFoldFrom :
+    accumulationValue
+    -> Direction
+    ->
+        ({ element : element, folded : accumulationValue }
+         -> { element : mappedElement, folded : accumulationValue }
+        )
+    ->
+        (Array element
+         -> { mapped : Array mappedElement, folded : accumulationValue }
+        )
+mapFoldFrom accumulationValueInitial direction reduce =
+    \array ->
+        let
+            mapFolded : { mapped : List mappedElement, folded : accumulationValue }
+            mapFolded =
+                array
+                    |> foldFrom { mapped = [], folded = accumulationValueInitial }
+                        direction
+                        (\element_ step ->
+                            let
+                                stepped : { element : mappedElement, folded : accumulationValue }
+                                stepped =
+                                    { element = element_, folded = step.folded } |> reduce
+                            in
+                            { mapped = step.mapped |> (::) stepped.element
+                            , folded = stepped.folded
+                            }
+                        )
+
+            mappedOrder : List a -> List a
+            mappedOrder =
+                case direction of
+                    Up ->
+                        List.reverse
+
+                    Down ->
+                        identity
+        in
+        { mapped = mapFolded.mapped |> mappedOrder |> Array.fromList
+        , folded = mapFolded.folded
+        }
 
 
 {-| Put in a given element at a given index

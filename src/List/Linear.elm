@@ -1,7 +1,7 @@
 module List.Linear exposing
     ( element
     , elementAlter
-    , foldFrom, foldTrace, foldTraceFrom
+    , foldFrom, mapFoldFrom
     , take, drop
     , toChunksOf
     )
@@ -21,7 +21,7 @@ module List.Linear exposing
 
 ## transform
 
-@docs foldFrom, foldTrace, foldTraceFrom
+@docs foldFrom, mapFoldFrom
 
 
 ### part
@@ -69,126 +69,87 @@ foldFrom accumulationValueInitial direction reduce =
     \list -> list |> fold reduce accumulationValueInitial
 
 
-{-| Reduce in a given [`Direction`](Linear#Direction),
-stacking up all of the intermediate results
+{-| Map each element using information collected from previous steps,
+folding in a given [`Direction`](Linear#Direction) from given initial information.
+
+Both the mapped `Array` and the folded information will be returned
+
+You'll often find this under the name "mapAccum"
 
     import Linear exposing (Direction(..))
 
-    [ 1, 2, 3, 4 ]
-        |> List.Linear.foldTraceFrom 0 Up (\el soFar -> soFar + el)
-    --> [ 1, 3, 6, 10 ]
-
     [ 1, 2, 3 ]
-        |> List.Linear.foldTraceFrom 0 Down (\el soFar -> soFar - el)
-    --> [ -3, -5, -6 ]
-
--}
-foldTraceFrom :
-    accumulationValue
-    -> Direction
-    -> (element -> (accumulationValue -> accumulationValue))
-    ->
-        (List element
-         -> List accumulationValue
-        )
-foldTraceFrom initialAccumulationValue direction accumulate =
-    \list ->
-        list
-            |> foldTraceReverseFrom initialAccumulationValue direction accumulate
-            |> List.reverse
-
-
-foldTraceReverseFrom :
-    accumulationValue
-    -> Direction
-    -> (element -> (accumulationValue -> accumulationValue))
-    ->
-        (List element
-         -> List accumulationValue
-        )
-foldTraceReverseFrom initialAccumulationValue direction accumulate =
-    \list ->
-        list
-            |> foldFrom
-                { accumulated = initialAccumulationValue
-                , trail = []
+        |> List.Linear.mapFoldFrom 0
+            Down
+            (\state ->
+                { element = state.folded
+                , folded = state.folded + state.element
                 }
-                direction
-                (\el soFar ->
-                    let
-                        accumulatedWithElement =
-                            soFar.accumulated |> accumulate el
-                    in
-                    { accumulated = accumulatedWithElement
-                    , trail = soFar.trail |> (::) accumulatedWithElement
-                    }
-                )
-            |> .trail
+            )
+    --> { mapped = [ 5, 3, 0 ], folded = 6 }
 
+    mapIndexed : Direction -> (Int -> a -> b) -> (List a -> List b)
+    mapIndexed indexDirection mapAtIndex =
+        List.Linear.mapFoldFrom 0
+            indexDirection
+            (\state ->
+                { element = state.element |> mapAtIndex state.folded
+                , folded = state.folded + 1
+                }
+            )
+            >> .mapped
 
-{-| [`foldTraceFrom`](#foldTraceFrom) its first element
-looking in a given [`Direction`](Linear#Direction)
+    [ 'h', 'i', 'y', 'o' ]
+        |> mapIndexed Up Tuple.pair
+    --> [ ( 0, 'h' ), ( 1, 'i' ), ( 2, 'y' ), ( 3, 'o' ) ]
 
-    import Linear exposing (Direction(..))
-
-    [ 1, 2, 3 ]
-        |> List.Linear.foldTrace Down (\el soFar -> soFar + el)
-    --> [ 3, 5, 6 ]
-
-    [ 1, 2, 3 ]
-        |> List.Linear.foldTrace Down (\el soFar -> soFar - el)
-    --> [ 3, 1, 0 ]
+    [ 'h', 'i', 'y', 'o' ]
+        |> mapIndexed Down Tuple.pair
+    --> [ ( 3, 'h' ), ( 2, 'i' ), ( 1, 'y' ), ( 0, 'o' ) ]
 
 -}
-foldTrace :
-    Direction
-    -> (element -> (element -> element))
+mapFoldFrom :
+    accumulationValue
+    -> Direction
+    ->
+        ({ element : element, folded : accumulationValue }
+         -> { element : mappedElement, folded : accumulationValue }
+        )
     ->
         (List element
-         -> List element
+         -> { mapped : List mappedElement, folded : accumulationValue }
         )
-foldTrace direction accumulate =
+mapFoldFrom accumulationValueInitial direction reduce =
     \list ->
-        list
-            |> foldTraceReverse direction accumulate
-            |> List.reverse
+        let
+            mapFolded : { mapped : List mappedElement, folded : accumulationValue }
+            mapFolded =
+                list
+                    |> foldFrom { mapped = [], folded = accumulationValueInitial }
+                        direction
+                        (\element_ step ->
+                            let
+                                stepped : { element : mappedElement, folded : accumulationValue }
+                                stepped =
+                                    { element = element_, folded = step.folded } |> reduce
+                            in
+                            { mapped = step.mapped |> (::) stepped.element
+                            , folded = stepped.folded
+                            }
+                        )
 
+            mappedOrder : List a -> List a
+            mappedOrder =
+                case direction of
+                    Up ->
+                        List.reverse
 
-foldTraceReverse :
-    Direction
-    -> (element -> (element -> element))
-    ->
-        (List element
-         -> List element
-        )
-foldTraceReverse direction accumulate =
-    case direction of
-        Up ->
-            \list ->
-                case list of
-                    [] ->
-                        []
-
-                    head :: tail ->
-                        tail |> foldTraceFrom head Up accumulate
-
-        Down ->
-            \list ->
-                case list of
-                    [] ->
-                        []
-
-                    [ only ] ->
-                        [ only ]
-
-                    element0 :: tail ->
-                        case tail |> foldTraceReverse Down accumulate of
-                            [] ->
-                                []
-
-                            (accumulated :: _) as foldTraced ->
-                                foldTraced
-                                    |> (::) (accumulated |> accumulate element0)
+                    Down ->
+                        identity
+        in
+        { mapped = mapFolded.mapped |> mappedOrder
+        , folded = mapFolded.folded
+        }
 
 
 {-| Split into equal-sized `chunks` of a given length in a given [`Direction`](Linear#Direction)
