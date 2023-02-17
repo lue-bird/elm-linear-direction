@@ -38,12 +38,12 @@ Array.fromList [ 'e', 'v', 'i', 'l' ]
   - → deal with both directions at once
 
     ```elm
-    import Linear exposing (DirectionLinear)
+    import Linear
     import Array exposing (Array)
     import Array.Linear
 
     elementAlter :
-        ( DirectionLinear, Int )
+        ( Linear.Direction, Int )
         -> (element -> element)
         -> (Array element -> Array element)
     elementAlter location alter =
