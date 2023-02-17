@@ -570,7 +570,7 @@ drop direction lengthToDrop =
     \array ->
         array
             |> take
-                (direction |> Linear.opposite)
+                (direction |> Linear.directionOpposite)
                 ((array |> Array.length) - lengthToDrop)
 
 
@@ -621,8 +621,8 @@ attach direction extension =
             (\l -> Array.repeat l 0)
     --> Array.fromList [ 0, 0, 1, 2 ]
 
-`padToAtLeast direction ... length |> take ( direction, length )`
-→ **"resize"** behavior
+To achieve "resize" behavior, use
+`padToAtLeast direction length` followed by [`take direction length`](#take)
 
     Array.fromList [ 1, 2, 3 ]
         |> Array.Linear.padToAtLeast Up

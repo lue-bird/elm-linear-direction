@@ -555,7 +555,7 @@ arrayTests =
                     array
                         |> Array.Linear.attach direction extension
                         |> Array.Linear.drop
-                            (direction |> Linear.opposite)
+                            (direction |> Linear.directionOpposite)
                             (extension |> Array.length)
                         |> expectEqualArrays
                             array

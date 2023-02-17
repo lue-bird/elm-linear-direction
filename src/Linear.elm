@@ -1,7 +1,7 @@
 module Linear exposing
     ( Direction(..)
     , directionFuzz
-    , opposite
+    , directionOpposite
     )
 
 {-| `Up` or `Down` a structure
@@ -16,7 +16,7 @@ module Linear exposing
 
 ## alter
 
-@docs opposite
+@docs directionOpposite
 
 -}
 
@@ -36,8 +36,8 @@ type Direction
 
 {-| The other [`Direction`](#Direction): `Down` ⇆ `Up`
 -}
-opposite : Direction -> Direction
-opposite direction =
+directionOpposite : Direction -> Direction
+directionOpposite direction =
     case direction of
         Up ->
             Down
