@@ -1,5 +1,10 @@
 # changes log
 
+### 11.1.0
+
+  - `Linear.List`
+      - `foldUntilCompleteFrom` add
+
 ## 11.0.0
 
   - `Linear`
