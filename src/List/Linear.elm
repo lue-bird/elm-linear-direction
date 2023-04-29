@@ -1,7 +1,7 @@
 module List.Linear exposing
     ( element
     , elementAlter
-    , foldFrom, mapFoldFrom
+    , foldFrom, foldUntilCompleteFrom, mapFoldFrom
     , take, drop
     , toChunksOf
     )
@@ -21,7 +21,7 @@ module List.Linear exposing
 
 ## transform
 
-@docs foldFrom, mapFoldFrom
+@docs foldFrom, foldUntilCompleteFrom, mapFoldFrom
 
 
 ### part
@@ -32,6 +32,7 @@ module List.Linear exposing
 -}
 
 import Linear exposing (Direction(..))
+import PartialOrComplete exposing (PartialOrComplete)
 
 
 {-| Reduce in a [`Direction`](Linear#Direction)
@@ -67,6 +68,143 @@ foldFrom accumulationValueInitial direction reduce =
                     List.foldr
     in
     \list -> list |> fold reduce accumulationValueInitial
+
+
+{-| A [fold](#foldFrom) that can stop
+→ ([`Complete`](https://dark.elm.dmy.fr/packages/lue-bird/elm-partial-or-complete/latest/PartialOrComplete#PartialOrComplete) the fold)
+early instead of traversing the whole `List`
+
+    -- from lue-bird/elm-partial-or-complete
+    import PartialOrComplete exposing (PartialOrComplete(..))
+    import Linear exposing (Direction(..))
+
+    [ 2, -1, 4, 8 ]
+        -- take from the right while not negative
+        |> List.Linear.foldUntilCompleteFrom []
+            Down
+            (\n soFar ->
+                if n < 0 then
+                    Complete soFar -- stop the fold
+                else
+                    Partial (n :: soFar)
+            )
+        -- even if none are negative
+        |> PartialOrComplete.value
+    --> [ 4, 8 ]
+
+If negative elements exist, our `foldUntilCompleteFrom` will return
+[`Complete`](https://dark.elm.dmy.fr/packages/lue-bird/elm-partial-or-complete/latest/PartialOrComplete#PartialOrComplete) with the list up to that point exclusive.
+
+If the list only contains non-negative numbers, the result would be
+[`Partial`](https://dark.elm.dmy.fr/packages/lue-bird/elm-partial-or-complete/latest/PartialOrComplete#PartialOrComplete)
+with the whole list.
+
+To treat both cases the same way, we use `value`, one of a few helpers from
+[`PartialOrComplete`](https://dark.elm.dmy.fr/packages/lue-bird/elm-partial-or-complete/latest/PartialOrComplete#PartialOrComplete)
+
+Compared to [`List.Extra.stoppableFoldl`](https://dark.elm.dmy.fr/packages/elm-community/list-extra/latest/List-Extra#stoppableFoldl)
+you'll have the extra information about whether the fold completed or not,
+as well as the ability to have different `Complete` and `Partial` types more in the spirit of
+"parse, don't validate" (plus both [`Direction`](Linear#Direction)s available).
+
+-}
+foldUntilCompleteFrom :
+    foldedPartial
+    -> Linear.Direction
+    -> (element -> (foldedPartial -> PartialOrComplete foldedPartial foldedComplete))
+    -> List element
+    -> PartialOrComplete foldedPartial foldedComplete
+foldUntilCompleteFrom initialFoldedPartial direction reduceStep =
+    case direction of
+        Down ->
+            foldDownUntilCompleteFrom initialFoldedPartial reduceStep
+
+        Up ->
+            foldUpUntilCompleteFrom initialFoldedPartial reduceStep
+
+
+foldUpUntilCompleteFrom :
+    foldedPartial
+    -> (element -> (foldedPartial -> PartialOrComplete foldedPartial foldedComplete))
+    -> List element
+    -> PartialOrComplete foldedPartial foldedComplete
+foldUpUntilCompleteFrom initialFoldedPartial reduceStep =
+    \list ->
+        case list of
+            [] ->
+                PartialOrComplete.Partial initialFoldedPartial
+
+            element0 :: elements1Up ->
+                PartialOrComplete.onPartialMapFlat
+                    (\element0Reduced ->
+                        foldUpUntilCompleteFrom element0Reduced reduceStep elements1Up
+                    )
+                    (reduceStep element0 initialFoldedPartial)
+
+
+foldDownUntilCompleteFrom :
+    foldedPartial
+    -> (element -> (foldedPartial -> PartialOrComplete foldedPartial foldedComplete))
+    -> List element
+    -> PartialOrComplete foldedPartial foldedComplete
+foldDownUntilCompleteFrom initialFoldedPartial reduceStep =
+    \list -> list |> foldDownUntilCompleteFromHelp initialFoldedPartial reduceStep 0
+
+
+foldDownUntilCompleteFromHelp :
+    foldedPartial
+    -> (element -> (foldedPartial -> PartialOrComplete foldedPartial foldedComplete))
+    -> Int
+    ->
+        (List element
+         -> PartialOrComplete foldedPartial foldedComplete
+        )
+foldDownUntilCompleteFromHelp initialFoldedPartial reduceStep ctr =
+    -- adapted from https://github.com/elm/core/blob/1.0.5/src/List.elm#L177
+    \list ->
+        case list of
+            [] ->
+                PartialOrComplete.Partial initialFoldedPartial
+
+            a :: bToEnd ->
+                case bToEnd of
+                    [] ->
+                        reduceStep a initialFoldedPartial
+
+                    b :: cToEnd ->
+                        case cToEnd of
+                            [] ->
+                                PartialOrComplete.onPartialMapFlat (reduceStep a)
+                                    (reduceStep b initialFoldedPartial)
+
+                            c :: dToEnd ->
+                                case dToEnd of
+                                    [] ->
+                                        PartialOrComplete.onPartialMapFlat (reduceStep a)
+                                            (PartialOrComplete.onPartialMapFlat (reduceStep b)
+                                                (reduceStep c initialFoldedPartial)
+                                            )
+
+                                    d :: eToEnd ->
+                                        let
+                                            res =
+                                                if ctr > 500 then
+                                                    eToEnd
+                                                        |> List.reverse
+                                                        |> foldUpUntilCompleteFrom initialFoldedPartial reduceStep
+
+                                                else
+                                                    eToEnd
+                                                        |> foldDownUntilCompleteFromHelp initialFoldedPartial reduceStep (ctr + 1)
+                                        in
+                                        PartialOrComplete.onPartialMapFlat (reduceStep a)
+                                            (PartialOrComplete.onPartialMapFlat (reduceStep b)
+                                                (PartialOrComplete.onPartialMapFlat (reduceStep c)
+                                                    (PartialOrComplete.onPartialMapFlat (reduceStep d)
+                                                        res
+                                                    )
+                                                )
+                                            )
 
 
 {-| Map each element using information collected from previous steps,

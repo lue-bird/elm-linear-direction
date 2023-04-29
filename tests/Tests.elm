@@ -6,6 +6,7 @@ import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer)
 import Linear exposing (Direction(..))
 import List.Linear
+import PartialOrComplete exposing (PartialOrComplete(..))
 import Random
 import Test exposing (Test, test)
 
@@ -20,7 +21,7 @@ suite =
 
 listTests : Test
 listTests =
-    Test.describe "list"
+    Test.describe "List.Linear"
         [ Test.describe "toChunksOf"
             [ test "Up"
                 (\() ->
@@ -198,12 +199,62 @@ listTests =
                             list
                 )
             ]
+        , Test.describe "foldUntilCompleteFrom"
+            [ Test.fuzz (Fuzz.list Fuzz.int)
+                "with Up behaves like List.foldl if function always returns Partial"
+                (\list ->
+                    list
+                        |> List.Linear.foldUntilCompleteFrom 0
+                            Up
+                            (\n soFar -> Partial (n - soFar))
+                        |> Expect.equal
+                            (Partial (list |> List.foldl (\n soFar -> n - soFar) 0))
+                )
+            , Test.fuzz (Fuzz.list Fuzz.int)
+                "with Down behaves like List.foldr if function always returns Partial"
+                (\list ->
+                    list
+                        |> List.Linear.foldUntilCompleteFrom 0
+                            Down
+                            (\n soFar -> Partial (n - soFar))
+                        |> Expect.equal
+                            (Partial (list |> List.foldr (\n soFar -> n - soFar) 0))
+                )
+            , Test.test "simple example returning Partial"
+                (\() ->
+                    List.Linear.foldUntilCompleteFrom 0
+                        Up
+                        (\n soFar ->
+                            if soFar >= 50 then
+                                Complete soFar
+
+                            else
+                                Partial (soFar + n)
+                        )
+                        (List.range 1 6)
+                        |> Expect.equal (Partial 21)
+                )
+            , Test.test "simple example returning Complete"
+                (\() ->
+                    List.Linear.foldUntilCompleteFrom 0
+                        Up
+                        (\n soFar ->
+                            if soFar >= 50 then
+                                Complete soFar
+
+                            else
+                                Partial (soFar + n)
+                        )
+                        (List.range 1 100)
+                        |> Expect.equal (Complete 55)
+                )
+            ]
         ]
 
 
 arrayTests : Test
 arrayTests =
-    Test.describe "array"
+    Test.describe "Array.Linear"
         [ Test.describe "element"
             [ Test.fuzz
                 (Fuzz.constant
