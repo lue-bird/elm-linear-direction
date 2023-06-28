@@ -1,6 +1,6 @@
 module List.Linear exposing
     ( element
-    , elementAlter
+    , elementAlter, padToAtLeast
     , foldFrom, foldUntilCompleteFrom, mapFoldFrom
     , take, drop
     , toChunksOf
@@ -16,7 +16,7 @@ module List.Linear exposing
 
 ## alter
 
-@docs elementAlter
+@docs elementAlter, padToAtLeast
 
 
 ## transform
@@ -533,6 +533,72 @@ elementAlter ( direction, index ) elementAtLocationAlter =
 
         else
             list
+
+
+{-| **Pad** in a [`Direction`](Linear#Direction) based on how much it takes to reach at a given length
+
+    import Linear exposing (Direction(..))
+
+    [ 1, 2 ]
+        |> List.Linear.padToAtLeast Up
+            4
+            (\l -> List.repeat l 0)
+    --> [ 1, 2, 0, 0 ]
+
+    [ 1, 2 ]
+        |> List.Linear.padToAtLeast Down
+            4
+            (\l -> List.repeat l 0)
+    --> [ 0, 0, 1, 2 ]
+
+To achieve "resize" behavior, use
+`padToAtLeast direction length` followed by [`take direction length`](#take)
+
+    [ 1, 2, 3 ]
+        |> List.Linear.padToAtLeast Up
+            2
+            (\l -> List.repeat l 0)
+        |> List.Linear.take Up 2
+    --> [ 1, 2 ]
+
+    [ 1, 2, 3 ]
+        |> List.Linear.padToAtLeast Down
+            2
+            (\l -> List.repeat l 0)
+        |> List.Linear.take Down 2
+    --> [ 2, 3 ]
+
+-}
+padToAtLeast :
+    Direction
+    -> Int
+    -> (Int -> List element)
+    ->
+        (List element
+         -> List element
+        )
+padToAtLeast directionToPadFrom lengthMinimum paddingArrayForLength =
+    \list ->
+        let
+            paddingLength =
+                lengthMinimum - (list |> List.length)
+        in
+        if paddingLength >= 0 then
+            list |> attach directionToPadFrom (paddingArrayForLength paddingLength)
+
+        else
+            list
+
+
+attach : Direction -> appendable -> appendable -> appendable
+attach direction extension =
+    \list ->
+        case direction of
+            Up ->
+                list ++ extension
+
+            Down ->
+                extension ++ list
 
 
 {-| Keep the order if `Up`, reverse if `Down`

@@ -249,6 +249,69 @@ listTests =
                         |> Expect.equal (Complete 55)
                 )
             ]
+        , Test.describe "padToAtLeast"
+            [ Test.describe "lengthMinimum > current length"
+                [ Test.fuzz
+                    (Fuzz.list Fuzz.int)
+                    "Up"
+                    (\list ->
+                        list
+                            |> List.Linear.padToAtLeast Up
+                                ((list |> List.length) + 2)
+                                (\l -> List.repeat l 0)
+                            |> Expect.equalLists
+                                (list ++ List.repeat 2 0)
+                    )
+                , Test.fuzz
+                    (Fuzz.list Fuzz.int)
+                    "Down"
+                    (\list ->
+                        list
+                            |> List.Linear.padToAtLeast Down
+                                ((list |> List.length) + 2)
+                                (\l -> List.repeat l 0)
+                            |> Expect.equalLists
+                                (List.repeat 2 0 ++ list)
+                    )
+                ]
+            , Test.fuzz
+                (Fuzz.constant
+                    (\list direction -> { list = list, direction = direction })
+                    |> Fuzz.andMap (Fuzz.list Fuzz.int)
+                    |> Fuzz.andMap linearDirectionFuzz
+                )
+                "lengthMinimum < current length  → identity"
+                (\{ list, direction } ->
+                    let
+                        lengthShortened =
+                            (list |> List.length) - 2
+                    in
+                    list
+                        |> List.Linear.padToAtLeast direction
+                            lengthShortened
+                            (\l -> List.repeat l 0)
+                        |> Expect.equalLists
+                            list
+                )
+            , Test.fuzz
+                (Fuzz.constant
+                    (\list direction length ->
+                        { list = list, direction = direction, length = length }
+                    )
+                    |> Fuzz.andMap (Fuzz.list Fuzz.int)
+                    |> Fuzz.andMap linearDirectionFuzz
+                    |> Fuzz.andMap (Fuzz.intRange Random.minInt -1)
+                )
+                "lengthMinimum negative → identity"
+                (\{ list, direction, length } ->
+                    list
+                        |> List.Linear.padToAtLeast direction
+                            length
+                            (\l -> List.repeat l 0)
+                        |> Expect.equalLists
+                            list
+                )
+            ]
         ]
 
 
