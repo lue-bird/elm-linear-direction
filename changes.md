@@ -1,5 +1,10 @@
 # changes log
 
+### 11.2.0
+
+  - `List.Linear`
+      - `padToAtLeast` add
+
 ### 11.1.0
 
   - `Linear.List`
