@@ -3,7 +3,7 @@
     "name": "lue-bird/elm-linear-direction",
     "summary": "up or down a structure",
     "license": "MIT",
-    "version": "11.1.0",
+    "version": "11.2.0",
     "exposed-modules": [
         "Linear",
         "Array.Linear",
